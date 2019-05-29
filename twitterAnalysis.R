@@ -71,6 +71,31 @@ ggplot(data = sentimentOverTime, aes(x = date, y = avgSentiment, group = 1)) +
 
 
 ## DESCRIPTIVE STUFF ##
+#number of tweets
+count(tweets)
+
 #distribution of tweets over time
 counts <- table(tweets$date)
 plot(counts, col = "red")
+
+#amount of retweets
+tweets %>%
+  count(is_retweet) -> retweeted
+head(retweeted)
+
+#finding geo location
+tweets %>%
+  count(location) -> locations
+head(locations, 10) #no use, selfdescriptive
+
+tweets %>%
+  count(geo_coords) -> geo_location
+head(geo_location, 10) #no use, only 4 activated
+
+#language setting (lang: Matches tweets that have been classified by Twitter as being of a particular language)
+tweets %>%
+  count(lang) -> language
+head(language) #all in english
+
+
+
