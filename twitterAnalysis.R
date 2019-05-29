@@ -1,9 +1,13 @@
 #install & load packages
-install.packages("quanteda")
-install.packages("dplyr")
+#install.packages("quanteda")
+#install.packages("dplyr")
+#install.packages("lubridate")
 
 require(quanteda)
 require(dplyr)
+require(ggplot2)
+
+library("lubridate")
 
 
 ##SENTIMENT ANALYSIS - PREPARE DATA##
@@ -60,7 +64,6 @@ mean(tweets$sentimentScore_test)
 tweets$date = substr(tweets$created_at,1,10)
 
 #sentiment change over time
-require(ggplot2)
 tweets %>%
   group_by(date) %>%
   summarise(avgSentiment = mean(sentimentScore)) -> sentimentOverTime
@@ -78,10 +81,29 @@ count(tweets)
 counts <- table(tweets$date)
 plot(counts, col = "red")
 
+#distribution of tweets over months
+ggplot(data = tweets, aes(x = month(created_at, label = TRUE))) +
+  geom_bar(aes(fill = ..count..)) +
+  xlab("Month") + ylab("Number of tweets") + 
+  theme_minimal() +
+  scale_fill_gradient(low = "cadetblue3", high = "chartreuse4")
+
+#distribution of tweets over weekdays
+ggplot(data = tweets, aes(x = wday(created_at, label = TRUE))) +
+  geom_bar(aes(fill = ..count..)) +
+  xlab("Day of the week") + ylab("Number of tweets") + 
+  theme_minimal() +
+  scale_fill_gradient(low = "turquoise3", high = "darkgreen")
+
 #amount of retweets
 tweets %>%
   count(is_retweet) -> retweeted
 head(retweeted)
+
+ggplot(data = tweets, aes(x = as.Date(created_at), fill = is_retweet)) +
+  geom_histogram(bins=48) +
+  xlab("Time") + ylab("Number of tweets") + theme_minimal() +
+  scale_fill_manual(values = c("chartreuse4", "chartreuse3"), name = "Retweet")
 
 #finding geo location
 tweets %>%
