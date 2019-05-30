@@ -14,11 +14,10 @@ library(syuzhet)
 
 #load & remove data
 tweets <- read.csv("climateChangeSample.csv", stringsAsFactors = F)
-#create new "date" column
+#create new "date" column & eliminate december
 tweets$date = substr(tweets$created_at,1,10)
 
-tester <- filter(tweets, date != 2018)
-View(tester)
+tweets <- filter(tweets, as.Date(date) > as.Date("2018-12-31"))
 
 #cleaning data
 text <- tweets$text
@@ -61,9 +60,12 @@ ggplot(data = sentimentscores,aes(x = sentiment, y = Score)) +
   ggtitle("Total sentiment based on scores") +
   theme_minimal()
 
+
+
 ## SPECIFIC SENTIMENTS OVER TIME ##
 tweets$sentiments <- sentiment
 
+#emotion over time
 monthlySentiment <- tweets %>%
   group_by(month(created_at, label = TRUE)) %>%
   summarise(anger = mean(sentiments$anger),
@@ -104,20 +106,22 @@ ggplot(data = posNegSentiment,
   theme_minimal()
 
 #daily sentimental change
-trustChange <- tweets %>%
+#positive
+posNegDaily <- tweets %>%
   group_by(date) %>%
-  summarise(trust = mean(sentiments$trust)) %>%
+  summarise(positive = mean(sentiments$positive),
+            negative = mean(sentiments$negative)) %>%
   melt
 
-names(trustChange) <- c("days", "sentiment", "meanvalue")
+names(posNegDaily) <- c("days", "sentiment", "meanvalue")
 
-ggplot(data = trustChange,
+ggplot(data = posNegDaily,
        aes(days, y = meanvalue, group = sentiment, color = sentiment))+
   geom_line() +
   geom_point() +
   labs(x = "Sentiment", colour = "Sentiment") +
   xlab("Day") + ylab("Number of tweets") +
-  theme_minimal()
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
 
 
