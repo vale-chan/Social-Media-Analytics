@@ -47,12 +47,16 @@ names(sentimentscores) <- "Score"
 sentimentscores <- cbind("sentiment"=rownames(sentimentscores),sentimentscores)
 rownames(sentimentscores) <- NULL
 
-ggplot(data=sentimentscores,aes(x=sentiment,y=Score)) +
-  geom_bar(aes(fill=sentiment),stat = "identity") +
-  theme(legend.position="none") +
-  xlab("Sentiments")+ylab("Scores") +
+ggplot(data = sentimentscores,aes(x = sentiment, y = Score)) +
+  geom_bar(aes(fill = sentiment),stat = "identity") +
+  theme(legend.position ="none") +
+  xlab("Sentiments") + ylab("Scores") +
   ggtitle("Total sentiment based on scores") +
   theme_minimal()
+
+#specific sentiments over months
+tweets$sentiments <- sentiment
+
 
 
 
