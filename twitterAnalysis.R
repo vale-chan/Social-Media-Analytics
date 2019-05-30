@@ -12,11 +12,16 @@ library(syuzhet)
 
 ##SENTIMENT ANALYSIS - PREPARE DATA##
 
-#load & inspect data
+#load & remove data
 tweets <- read.csv("climateChangeSample.csv", stringsAsFactors = F)
-text <- tweets$text
+#create new "date" column
+tweets$date = substr(tweets$created_at,1,10)
+
+tester <- filter(tweets, date != 2018)
+View(tester)
 
 #cleaning data
+text <- tweets$text
 tweets_dfm <- dfm(text, remove_punct = T, remove_url = T, remove_numbers = T, remove_symbols = T, remove = stopwords("en"))
 
 #get ready for sentiment analysis
@@ -81,14 +86,6 @@ ggplot(data = monthlySentiment,
   xlab("Month") + ylab("Number of tweets") +
   theme_minimal()
 
-#abstrac failed plot
-ggplot(data = monthlySentiment,
-       aes(month, group = sentiment, color = sentiment))+
-  geom_bar() +
-  labs(x = "Month", colour = "Month") +
-  xlab("Month") + ylab("Number of tweets") +
-  theme_minimal()
-
 #positive and negative sentiments over time
 posNegSentiment <- tweets %>%
   group_by(month(created_at, label = TRUE)) %>%
@@ -105,6 +102,24 @@ ggplot(data = posNegSentiment,
   labs(x = "Month", colour = "Month") +
   xlab("Month") + ylab("Number of tweets") +
   theme_minimal()
+
+#daily sentimental change
+trustChange <- tweets %>%
+  group_by(date) %>%
+  summarise(trust = mean(sentiments$trust)) %>%
+  melt
+
+names(trustChange) <- c("days", "sentiment", "meanvalue")
+
+ggplot(data = trustChange,
+       aes(days, y = meanvalue, group = sentiment, color = sentiment))+
+  geom_line() +
+  geom_point() +
+  labs(x = "Sentiment", colour = "Sentiment") +
+  xlab("Day") + ylab("Number of tweets") +
+  theme_minimal()
+
+
 
 ## SENTIMENT ANALYSIS - SENTIMENT OVER TIME ##
 #create new "date" column
