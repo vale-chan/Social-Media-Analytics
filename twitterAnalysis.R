@@ -1,11 +1,13 @@
 #load packages
-library(quanteda)
 library(dplyr)
 library(ggplot2)
-library(lubridate)
 library(hms)
+library(lubridate)
+library(quanteda)
+library(reshape2)
 library(scales)
 library(syuzhet)
+
 
 
 ##SENTIMENT ANALYSIS - PREPARE DATA##
@@ -54,10 +56,41 @@ ggplot(data = sentimentscores,aes(x = sentiment, y = Score)) +
   ggtitle("Total sentiment based on scores") +
   theme_minimal()
 
-#specific sentiments over months
+## SPECIFIC SENTIMENTS OVER TIME ##
 tweets$sentiments <- sentiment
 
+monthlySentiment <- tweets %>%
+  group_by(month(created_at, label = TRUE)) %>%
+  summarise(anger = mean(sentiments$anger),
+            anticipation = mean(sentiments$anticipation),
+            disgust = mean(sentiments$disgust),
+            fear = mean(sentiments$fear),
+            joy = mean(sentiments$joy),
+            negative = mean(sentiments$negative),
+            positive = mean(sentiments$positive),
+            sadness = mean(sentiments$sadness),
+            surprise = mean(sentiments$surprise),
+            trust = mean(sentiments$trust)) %>%
+  melt
 
+names(monthlySentiment) <- c("month", "sentiment", "meanvalue")
+monthlySentiment
+
+ggplot(data = monthlySentiment,
+       aes(month, y = meanvalue, group = sentiment, color = sentiment))+
+  geom_line() +
+  geom_point() +
+  labs(x = "Month", colour = "Month") +
+  xlab("Month") + ylab("Number of tweets") +
+  theme_minimal()
+
+#abstrac failed plot
+ggplot(data = monthlySentiment,
+       aes(month, group = sentiment, color = sentiment))+
+  geom_bar() +
+  labs(x = "Month", colour = "Month") +
+  xlab("Month") + ylab("Number of tweets") +
+  theme_minimal()
 
 
 ## SENTIMENT ANALYSIS - SENTIMENT OVER TIME ##
