@@ -66,15 +66,12 @@ monthlySentiment <- tweets %>%
             disgust = mean(sentiments$disgust),
             fear = mean(sentiments$fear),
             joy = mean(sentiments$joy),
-            negative = mean(sentiments$negative),
-            positive = mean(sentiments$positive),
             sadness = mean(sentiments$sadness),
             surprise = mean(sentiments$surprise),
             trust = mean(sentiments$trust)) %>%
   melt
 
 names(monthlySentiment) <- c("month", "sentiment", "meanvalue")
-monthlySentiment
 
 ggplot(data = monthlySentiment,
        aes(month, y = meanvalue, group = sentiment, color = sentiment))+
@@ -92,6 +89,22 @@ ggplot(data = monthlySentiment,
   xlab("Month") + ylab("Number of tweets") +
   theme_minimal()
 
+#positive and negative sentiments over time
+posNegSentiment <- tweets %>%
+  group_by(month(created_at, label = TRUE)) %>%
+  summarise(negative = mean(sentiments$negative),
+            positive = mean(sentiments$positive)) %>%
+  melt
+
+names(posNegSentiment) <- c("month", "sentiment", "meanvalue")
+
+ggplot(data = posNegSentiment,
+       aes(month, y = meanvalue, group = sentiment, color = sentiment))+
+  geom_line() +
+  geom_point() +
+  labs(x = "Month", colour = "Month") +
+  xlab("Month") + ylab("Number of tweets") +
+  theme_minimal()
 
 ## SENTIMENT ANALYSIS - SENTIMENT OVER TIME ##
 #create new "date" column
