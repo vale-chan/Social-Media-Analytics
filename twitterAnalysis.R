@@ -7,6 +7,7 @@ library(quanteda)
 library(reshape2)
 library(scales)
 library(syuzhet)
+library(purrrlyr)
 
 
 
@@ -18,6 +19,8 @@ tweets <- read.csv("climateChangeSample.csv", stringsAsFactors = F)
 tweets$date = substr(tweets$created_at,1,10)
 
 tweets <- filter(tweets, as.Date(date) > as.Date("2018-12-31"))
+tweetsJan <- filter(tweets, as.Date(date) > as.Date("2018-12-31") & as.Date(date) < as.Date("2019-02-01"))
+tweetsFeb <- filter(tweets, as.Date(date) > as.Date("2019-01-31") & as.Date(date) < as.Date("2019-03-01"))
 
 #cleaning data
 text <- tweets$text
@@ -140,9 +143,13 @@ ggplot(data = sentimentOverTime, aes(x = date, y = avgSentiment, group = 1)) +
 
 
 
-## HASHTAG ANALYSIS ##
+### HASHTAG ANALYSIS ###
+
+tweets$tags_split <- lapply(tweets$hashtags, function(tags) strsplit(tags, ' '))
+
+##MOST USED HASHTAGS##
 # Getting the hashtags from the list 
-tags_split <- unlist(strsplit(as.character(unlist(tweets$hashtags)),' '))
+tags_split <- unlist(tweets$tags_split)
 
 # Formatting by removing the white spacea
 tags <- sapply(tags_split, function(y) nchar(trimws(y)) > 0 & !is.na(y))
@@ -156,6 +163,42 @@ ggplot(tag_df, aes(x = reorder(Var1,-Freq), y = Freq)) +
   theme_minimal() + 
   xlab("#Hashtags") + ylab("Count")
 
+ daily_tags <- aggregate(
+    tweets$hashtags,
+    list(tweets$date),
+    function(tags) paste(tags, collapse = " ")
+  )
+ 
+names(daily_tags) <- c("date","tags")
+
+daily_tags$tags_split <- sapply(daily_tags$tags, function(tags) strsplit(tags, " +"))
+ 
+ 
+#hashtags january
+tags_split <- unlist(tweetsJan$tags_split)
+tags_splitJan <- unlist(tweetsJan$tags_split)
+tagsJan <- sapply(tags_splitJan, function(y) nchar(trimws(y)) > 0 & !is.na(y))
+tagJan_df <- as.data.frame(table(tolower(tags_splitJan[tagsJan])))
+tagJan_df <- tagJan_df[order(-tagJan_df$Freq),]
+tagJan_df <- tagJan_df[1:10,]
+
+ggplot(tagJan_df, aes(x = reorder(Var1,-Freq), y = Freq)) +
+  geom_bar(stat="identity", fill="darkslategray")+
+  theme_minimal() + 
+  xlab("#Hashtags january") + ylab("Count")
+
+#hashtags february
+tags_split <- unlist(tweetsFeb$tags_split)
+tags_splitFeb <- unlist(tweetsFeb$tags_split)
+tagsFeb <- sapply(tags_splitFeb, function(y) nchar(trimws(y)) > 0 & !is.na(y))
+tagFeb_df <- as.data.frame(table(tolower(tags_splitFeb[tagsFeb])))
+tagFeb_df <- tagFeb_df[order(-tagFeb_df$Freq),]
+tagFeb_df <- tagFeb_df[1:10,]
+
+ggplot(tagFeb_df, aes(x = reorder(Var1,-Freq), y = Freq)) +
+  geom_bar(stat="identity", fill="darkslategray")+
+  theme_minimal() + 
+  xlab("#Hashtags february") + ylab("Count")
 
 
 ## DESCRIPTIVE STUFF ##
