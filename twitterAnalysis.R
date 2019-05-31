@@ -274,14 +274,14 @@ tweets %>%
            screen_name == "trojancowboy" |
            screen_name == "wernerpatels") -> mostAcctive
 
-ggplot(mostAcctive, aes(x = created_at, fill = screen_name)) +
+ggplot(mostAcctive, aes(x = date, fill = screen_name)) +
   geom_histogram(position = "identity", stat="count", bins = 50, show.legend = FALSE) +
   facet_wrap(~screen_name, ncol = 1, scales = "free_y") + 
   ggtitle("Tweet Activity (Adaptive y-axis)")
 
-ggplot(mostAcctive, aes(x = created_at, fill = screen_name)) +
+ggplot(mostAcctive, aes(x = date, fill = screen_name)) +
   geom_histogram(position = "identity", stat="count", bins = 50, show.legend = FALSE) +
-  facet_wrap(~screen_name, ncol = 1, scales = "free_y") + 
+  facet_wrap(~screen_name, ncol = 1) + 
   ggtitle("Tweet Activity (Adaptive y-axis)")
 
 ## DESCRIPTIVE STUFF ##
