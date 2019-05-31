@@ -242,6 +242,32 @@ ggplot(tagApr_df, aes(x = reorder(Var1,-Freq), y = Freq)) +
   xlab("#Hashtags april") + ylab("Count")
 
 
+
+##USER ACTIVITES##
+#most acctive accounts#
+
+tweets %>%
+  group_by(screen_name) %>%
+  summarise(frq = n()) %>%
+  arrange(desc(frq)) -> mostActiveAccount
+
+mostActiveAccount_df <- as.data.frame(mostActiveAccount)
+mostActiveAccount_df <- mostActiveAccount_df[order(-mostActiveAccount_df$frq),]
+mostActiveAccount_df <- mostActiveAccount_df[1:10,]
+
+ggplot(mostActiveAccount_df, aes(x = reorder(screen_name,-frq), y = frq)) +
+  geom_bar(stat="identity", fill="darkslategray")+
+  theme_minimal() + 
+  xlab("Accounts") + ylab("Count")
+
+tweets %>%
+  group_by(date) %>%
+  summarise(avgSentiment = mean(sentimentScore)) -> sentimentOverTime
+
+ggplot(data = sentimentOverTime, aes(x = date, y = avgSentiment, group = 1)) +
+  geom_line(aes(color = 'pink'), size = 1) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
 ## DESCRIPTIVE STUFF ##
 #number of tweets
 count(tweets)
