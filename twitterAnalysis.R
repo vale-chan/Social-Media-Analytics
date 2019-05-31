@@ -260,13 +260,29 @@ ggplot(mostActiveAccount_df, aes(x = reorder(screen_name,-frq), y = frq)) +
   theme_minimal() + 
   xlab("Accounts") + ylab("Count")
 
-tweets %>%
-  group_by(date) %>%
-  summarise(avgSentiment = mean(sentimentScore)) -> sentimentOverTime
 
-ggplot(data = sentimentOverTime, aes(x = date, y = avgSentiment, group = 1)) +
-  geom_line(aes(color = 'pink'), size = 1) +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+#most acctive accounts over time
+tweets %>%
+  filter(screen_name == "PMgeezer" |
+           screen_name == "ImmoralReport" |
+           screen_name == "marlowstephens" |
+           screen_name == "datalgorithms" |
+           screen_name == "thomasj17431826" |
+           screen_name == "Don32373037" |
+           screen_name == "johannaihli" |
+           screen_name == "dmzastro" |
+           screen_name == "trojancowboy" |
+           screen_name == "wernerpatels") -> mostAcctive
+
+ggplot(mostAcctive, aes(x = created_at, fill = screen_name)) +
+  geom_histogram(position = "identity", stat="count", bins = 50, show.legend = FALSE) +
+  facet_wrap(~screen_name, ncol = 1, scales = "free_y") + 
+  ggtitle("Tweet Activity (Adaptive y-axis)")
+
+ggplot(mostAcctive, aes(x = created_at, fill = screen_name)) +
+  geom_histogram(position = "identity", stat="count", bins = 50, show.legend = FALSE) +
+  facet_wrap(~screen_name, ncol = 1, scales = "free_y") + 
+  ggtitle("Tweet Activity (Adaptive y-axis)")
 
 ## DESCRIPTIVE STUFF ##
 #number of tweets
