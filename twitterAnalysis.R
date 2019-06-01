@@ -337,12 +337,45 @@ topfeatures(topTenRetweetsHash_dfm)
 # most retweeted account
 
 tweets %>%
-  filter(retweet_screen_name != '') %>%
+  filter(retweet_status_id != '') %>%
   group_by(retweet_screen_name) %>%
   summarise(frq = n()) %>%
-  arrange(desc(frq)) %>%
-  View()
+  arrange(desc(frq)) -> topRetweetedAccounts
 
+topRetweetedAccounts_df <- as.data.frame(topRetweetedAccounts)
+topRetweetedAccounts_df <- topRetweetedAccounts_df[order(-topRetweetedAccounts_df$frq),]
+topRetweetedAccounts_df <- topRetweetedAccounts_df[1:10,]
+
+ggplot(topRetweetedAccounts_df, aes(x = reorder(retweet_screen_name,-frq), y = frq)) +
+  geom_bar(stat="identity", fill="darkslategray") +
+  theme_minimal() + 
+  xlab("Retweeted Accounts") + ylab("Count") +
+  ggtitle("Top 10 retweeted Accounts")
+
+
+tweets %>%
+  group_by(date) %>%
+  filter(retweet_screen_name == "superyayadize" |
+           retweet_screen_name == "MarkYoungTruth" |
+           retweet_screen_name == "ClintEastwoodLA" |
+           retweet_screen_name == "AGirlToOne" |
+           retweet_screen_name == "LionelMedia" |
+           retweet_screen_name == "gailsline" |
+           retweet_screen_name == "DeplorablAnnJoy" |
+           retweet_screen_name == "Trump_Girl_USA" |
+           retweet_screen_name == "Doodisgirl" |
+           retweet_screen_name == "Sundncefn") -> topTenRetweetedAccounts
+
+ggplot(topTenRetweetedAccounts, aes(x = as.Date(created_at), fill = retweet_screen_name)) +
+  geom_histogram(position = "identity", stat="count", bins = 50, show.legend = T) +
+  ylab("Amount of retweets") +
+  theme(axis.title.x = element_blank(), axis.ticks.y = element_blank(), axis.ticks.x = element_blank()) +
+  ggtitle("Top 10 retweets")
+
+
+facet_wrap(~screen_name, ncol = 1) +
+  ylab("Amount of tweets") +
+  scale_fill_discrete(name = "Retweet", labels = c("no", "yes")) +
 
 
 ## DESCRIPTIVE STUFF ##
