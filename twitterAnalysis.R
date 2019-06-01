@@ -181,7 +181,7 @@ names(daily_tags) <- c("date","tags")
 
 daily_tags$tags_split <- sapply(daily_tags$tags, function(tags) strsplit(tags, " +"))
 
- 
+
 #hashtags january
 
 tags_split <- unlist(tweetsJan$tags_split)
@@ -382,9 +382,158 @@ ggplot(topTenRetweetedAccounts, aes(x = as.Date(created_at), fill = retweet_scre
   ggtitle("Top 10 retweeted accounts")
 
 
+
+##URL-STUFF##
+#add "domain" column
+
+tweets$domain <- domain(tweets$urls_expanded_url)
+tweetsJan$domain <- domain(tweetsJan$urls_expanded_url)
+tweetsFeb$domain <- domain(tweetsFeb$urls_expanded_url)
+tweetsMar$domain <- domain(tweetsMar$urls_expanded_url)
+tweetsApr$domain <- domain(tweetsApr$urls_expanded_url)
+
+
+#top youtube links#
+
+tweets %>%
+  filter(domain != '') %>%
+  filter(domain == "www.youtube.com" | domain == "youtu.be") %>%
+  group_by(urls_expanded_url) %>%
+  summarise(sum=n()) %>%
+  arrange(desc(sum)) %>%
+  head(20)
+
+tweets %>%
+  filter(domain != '') %>%
+  filter(domain == "www.youtube.com" | domain == "youtu.be") -> tweetsYT
+
+ggplot(tweetsYT, aes(x = as.Date(created_at), fill = urls_expanded_url)) +
+  geom_histogram(position = "identity", stat="count", bins = 50, show.legend = F) +
+  xlab("") + ylab("Amount of urls") +
+  theme_minimal() +
+  ggtitle("External youtube links")
+
+ggplot(tweetsYT, aes(x = urls_expanded_url)) +
+  geom_histogram(position = "identity", stat="count", bins = 50, show.legend = F) +
+  xlab("") + ylab("Amount of urls") +
+  theme_minimal() +
+  ggtitle("External youtube links")
+
+#top facebook links#
+tweets %>%
+  filter(domain != '') %>%
+  filter(domain == "www.facebook.com") %>%
+  group_by(urls_expanded_url) %>%
+  summarise(sum=n()) %>%
+  arrange(desc(sum)) %>%
+  head(20)
+
+
+tweets %>%
+  filter(domain != '') %>%
+  filter(domain == "www.facebook.com") -> tweetsFB
+
+ggplot(tweetsFB, aes(x = as.Date(created_at), fill = urls_expanded_url)) +
+  geom_histogram(position = "identity", stat="count", bins = 50, show.legend = F) +
+  xlab("") + ylab("Amount of external urls") +
+  theme_minimal() +
+  ggtitle("External facebook links")
+
+#find top youtube links january#
+
+tweetsJan %>%
+  filter(domain != '') %>%
+  filter(domain == "www.youtube.com" | domain == "youtu.be") %>%
+  group_by(urls_expanded_url) %>%
+  summarise(sum=n()) %>%
+  arrange(desc(sum)) %>%
+  head(10)
+
+
+#find top youtube links february#
+
+tweetsFeb %>%
+  filter(domain != '') %>%
+  filter(domain == "www.youtube.com" | domain == "youtu.be") %>%
+  group_by(urls_expanded_url) %>%
+  summarise(sum=n()) %>%
+  arrange(desc(sum)) %>%
+  head(10)
+
+
+#find top youtube links march#
+
+tweetsMar %>%
+  filter(domain != '') %>%
+  filter(domain == "www.youtube.com" | domain == "youtu.be") %>%
+  group_by(urls_expanded_url) %>%
+  summarise(sum=n()) %>%
+  arrange(desc(sum)) %>%
+  head(10)
+
+
+#find top youtube links april#
+
+tweetsApr %>%
+  filter(domain != '') %>%
+  filter(domain == "www.youtube.com" | domain == "youtu.be") %>%
+  group_by(urls_expanded_url) %>%
+  summarise(sum=n()) %>%
+  arrange(desc(sum)) %>%
+  head(10)
+
+
+#top facebook links january#
+
+tweetsJan %>%
+  filter(domain != '') %>%
+  filter(domain == "www.facebook.com") %>%
+  group_by(urls_expanded_url) %>%
+  summarise(sum=n()) %>%
+  arrange(desc(sum)) %>%
+  head(10)
+
+
+#top facebook links february#
+
+tweetsFeb %>%
+  filter(domain != '') %>%
+  filter(domain == "www.facebook.com") %>%
+  group_by(urls_expanded_url) %>%
+  summarise(sum=n()) %>%
+  arrange(desc(sum)) %>%
+  head(10)
+
+
+#top facebook links march#
+
+tweetsMar %>%
+  filter(domain != '') %>%
+  filter(domain == "www.facebook.com") %>%
+  group_by(urls_expanded_url) %>%
+  summarise(sum=n()) %>%
+  arrange(desc(sum)) %>%
+  head(10)
+
+
+#top facebook links april#
+
+tweetsApr %>%
+  filter(domain != '') %>%
+  filter(domain == "www.facebook.com") %>%
+  group_by(urls_expanded_url) %>%
+  summarise(sum=n()) %>%
+  arrange(desc(sum)) %>%
+  head(10)
+
+
+
 ## DESCRIPTIVE STUFF ##
 #number of tweets
 count(tweets)
+
+#4unique accounts contributing to tweets in this dataset
+unique(tweets$screen_name) %>% length()
 
 #distribution of tweets over time
 ggplot(tweets, aes(x = as.Date(created_at))) +
