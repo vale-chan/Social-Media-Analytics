@@ -275,14 +275,21 @@ tweets %>%
            screen_name == "wernerpatels") -> mostAcctive
 
 ggplot(mostAcctive, aes(x = date, fill = screen_name)) +
-  geom_histogram(position = "identity", stat="count", bins = 50, show.legend = FALSE) +
-  facet_wrap(~screen_name, ncol = 1, scales = "free_y") + 
-  ggtitle("Tweet Activity (Adaptive y-axis)")
-
-ggplot(mostAcctive, aes(x = date, fill = screen_name)) +
-  geom_histogram(position = "identity", stat="count", bins = 50, show.legend = FALSE) +
+  geom_histogram(position = "identity", stat="count", bins = 50, show.legend = F) +
   facet_wrap(~screen_name, ncol = 1) + 
-  ggtitle("Tweet Activity (Adaptive y-axis)")
+  xlab("Date") + ylab("Amount of tweets") +
+  theme(axis.ticks.y = element_blank(), axis.ticks.x = element_blank(), axis.text.x = element_text(angle = 90, hjust = 1)) +
+  ggtitle("Tweet Activity")
+
+#amount of retweets for top 10 users
+ggplot(mostAcctive, aes(x = as.Date(created_at), fill = is_retweet)) +
+  geom_histogram(position = "identity", stat="count", bins = 50, show.legend = T) +
+  facet_wrap(~screen_name, ncol = 1) +
+  ylab("Amount of tweets") +
+  scale_fill_discrete(name = "Retweet", labels = c("no", "yes")) +
+  theme(axis.title.x = element_blank(), axis.ticks.y = element_blank(), axis.ticks.x = element_blank()) +
+  ggtitle("Tweet Activity")
+
 
 ## DESCRIPTIVE STUFF ##
 #number of tweets
@@ -308,7 +315,7 @@ ggplot(data = tweets, aes(x = wday(created_at, label = TRUE))) +
 
 #amount of retweets
 tweets %>%
-  count(is_retweet) -> retweeted %>%
+  count(is_retweet) -> retweeted
 
 ggplot(data = tweets, aes(x = as.Date(created_at), fill = is_retweet)) +
   geom_histogram(bins=48) +
