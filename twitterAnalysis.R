@@ -8,8 +8,8 @@ library(quanteda)
 library(reshape2)
 library(scales)
 library(syuzhet)
-library(purrrlyr)
-
+#library(purrrlyr)
+library(urltools)
 
 
 ##SENTIMENT ANALYSIS - PREPARE DATA##
@@ -281,7 +281,9 @@ ggplot(mostAcctive, aes(x = date, fill = screen_name)) +
   theme(axis.ticks.y = element_blank(), axis.ticks.x = element_blank(), axis.text.x = element_text(angle = 90, hjust = 1)) +
   ggtitle("Tweet Activity")
 
+
 #amount of retweets for top 10 users
+
 ggplot(mostAcctive, aes(x = as.Date(created_at), fill = is_retweet)) +
   geom_histogram(position = "identity", stat="count", bins = 50, show.legend = T) +
   facet_wrap(~screen_name, ncol = 1) +
@@ -289,6 +291,58 @@ ggplot(mostAcctive, aes(x = as.Date(created_at), fill = is_retweet)) +
   scale_fill_discrete(name = "Retweet", labels = c("no", "yes")) +
   theme(axis.title.x = element_blank(), axis.ticks.y = element_blank(), axis.ticks.x = element_blank()) +
   ggtitle("Tweet Activity")
+
+
+#most retweeted tweet
+
+tweets %>%
+  filter(retweet_status_id != '') %>%
+  group_by(retweet_status_id) %>%
+  summarise(frq = n()) %>%
+  arrange(desc(frq)) -> topRetweets
+
+topRetweets_df <- as.data.frame(topRetweets)
+topRetweets_df <- topRetweets_df[order(-topRetweets_df$frq),]
+topRetweets_df <- topRetweets_df[1:10,]
+
+ggplot(topRetweets_df, aes(x = reorder(retweet_status_id,-frq), y = frq)) +
+  geom_bar(stat="identity", fill="darkslategray") +
+  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank()) + 
+  xlab("Retweets") + ylab("Count")
+
+
+tweets %>%
+  group_by(date) %>%
+  filter(retweet_status_id == "x1112884461882925056" |
+           retweet_status_id == "x1105606202069843969" |
+           retweet_status_id == "x1111196341739417600" |
+           retweet_status_id == "x1092227514594979840" |
+           retweet_status_id == "x1108751853972606977" |
+           retweet_status_id == "x1106701643557625856" |
+           retweet_status_id == "x1097670309363281920" |
+           retweet_status_id == "x1110671797865906178" |
+           retweet_status_id == "x1109093459313524737" |
+           retweet_status_id == "x1108751853972606977") -> topTenRetweets
+
+ggplot(topTenRetweets, aes(x = as.Date(created_at), fill = retweet_status_id)) +
+  geom_histogram(position = "identity", stat="count", bins = 50, show.legend = F) +
+  ylab("Amount of retweets") +
+  theme(axis.title.x = element_blank(), axis.ticks.y = element_blank(), axis.ticks.x = element_blank()) +
+  ggtitle("Top 10 retweets")
+
+topTenRetweetsHash_dfm <- dfm(topTenRetweets$hashtags)
+topfeatures(topTenRetweetsHash_dfm)
+
+
+# most retweeted account
+
+tweets %>%
+  filter(retweet_screen_name != '') %>%
+  group_by(retweet_screen_name) %>%
+  summarise(frq = n()) %>%
+  arrange(desc(frq)) %>%
+  View()
+
 
 
 ## DESCRIPTIVE STUFF ##
