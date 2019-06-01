@@ -8,8 +8,8 @@ library(quanteda)
 library(reshape2)
 library(scales)
 library(syuzhet)
-#library(purrrlyr)
 library(urltools)
+#library(purrrlyr)
 
 
 ##SENTIMENT ANALYSIS - PREPARE DATA##
@@ -30,7 +30,7 @@ tweetsApr <- filter(tweets, as.Date(date) > as.Date("2019-03-31") & as.Date(date
 #cleaning data
 text <- tweets$text
 tweets_dfm <- dfm(text, remove_punct = T, remove_url = T, remove_numbers = T, remove_symbols = T, remove = stopwords("en"))
-View(tweets_dfm)
+
 #get ready for sentiment analysis
 afinn <- readRDS("afinn.rds")
 tweets_afinn <- dfm_lookup(tweets_dfm, dictionary = afinn)
@@ -62,9 +62,9 @@ sentimentscores <- cbind("sentiment"=rownames(sentimentscores),sentimentscores)
 rownames(sentimentscores) <- NULL
 
 ggplot(data = sentimentscores,aes(x = sentiment, y = Score)) +
-  geom_bar(aes(fill = sentiment),stat = "identity") +
-  theme(legend.position ="none") +
-  xlab("Sentiments") + ylab("Scores") +
+  geom_bar(aes(fill = sentiment), stat = "identity") +
+  scale_fill_discrete(name = "Emotion") +
+  xlab("Sentiments") + ylab("Sentiment Scores") +
   ggtitle("Total sentiment based on scores") +
   theme_minimal()
 
@@ -88,12 +88,11 @@ monthlySentiment <- tweets %>%
 
 names(monthlySentiment) <- c("month", "sentiment", "meanvalue")
 
-ggplot(data = monthlySentiment,
-       aes(month, y = meanvalue, group = sentiment, color = sentiment))+
-  geom_line() +
-  geom_point() +
-  labs(x = "Month", colour = "Month") +
-  xlab("Month") + ylab("Number of tweets") +
+ggplot(data = monthlySentiment, aes(month, y = meanvalue, group = sentiment, color = sentiment)) +
+  geom_line() + geom_point() +
+  labs(colour = "Emotion") +
+  xlab("") + ylab("Average emotion score") +
+  ggtitle("Emotional change of tweets") +
   theme_minimal()
 
 #positive and negative sentiments over time
@@ -105,16 +104,14 @@ posNegSentiment <- tweets %>%
 
 names(posNegSentiment) <- c("month", "sentiment", "meanvalue")
 
-ggplot(data = posNegSentiment,
-       aes(month, y = meanvalue, group = sentiment, color = sentiment))+
-  geom_line() +
-  geom_point() +
-  labs(x = "Month", colour = "Month") +
-  xlab("Month") + ylab("Number of tweets") +
+ggplot(data = posNegSentiment, aes(month, y = meanvalue, group = sentiment, color = sentiment))+
+  geom_line() + geom_point() +
+  labs(x = "Month", colour = "Sentiment") +
+  xlab("") + ylab("Average sentiment score") +
+  ggtitle("Sentiment change over time") +
   theme_minimal()
 
 #daily sentimental change
-#positive
 posNegDaily <- tweets %>%
   group_by(date) %>%
   summarise(positive = mean(sentiments$positive),
@@ -123,12 +120,12 @@ posNegDaily <- tweets %>%
 
 names(posNegDaily) <- c("days", "sentiment", "meanvalue")
 
-ggplot(data = posNegDaily,
-       aes(days, y = meanvalue, group = sentiment, color = sentiment))+
-  geom_line() +
-  geom_point() +
+ggplot(data = posNegDaily, aes(days, y = meanvalue, group = sentiment, color = sentiment))+
+  geom_line() + geom_point() +
   labs(x = "Sentiment", colour = "Sentiment") +
-  xlab("Day") + ylab("Number of tweets") +
+  xlab("") + ylab("Average sentiment score") +
+  theme_minimal() +
+  ggtitle("Sentiment change on daily basis") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
 
@@ -144,7 +141,10 @@ tweets %>%
 
 ggplot(data = sentimentOverTime, aes(x = date, y = avgSentiment, group = 1)) +
   geom_line(aes(color = 'pink'), size = 1) +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+  xlab("") + ylab("Average sentiment score") +
+  theme_minimal() +
+  ggtitle("Change of sentiment score on a daily basis") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1), legend.position = "none")
 
 
 
@@ -159,14 +159,14 @@ tags_split <- unlist(tweets$tags_split)
 # Formatting by removing the white spacea
 tags <- sapply(tags_split, function(y) nchar(trimws(y)) > 0 & !is.na(y))
 tag_df <- as.data.frame(table(tolower(tags_split[tags])))
-as_tibble(strsplit("this is a test" , " ")[[1]])
 tag_df <- tag_df[order(-tag_df$Freq),]
 tag_df <- tag_df[1:10,]
 
 ggplot(tag_df, aes(x = reorder(Var1,-Freq), y = Freq)) +
-  geom_bar(stat="identity", fill="darkslategray")+
-  theme_minimal() + 
-  xlab("#Hashtags") + ylab("Count")
+  geom_bar(stat="identity", fill="darkslategray") +
+  xlab("#Hashtags") + ylab("") +
+  ggtitle("Top 10 used hashtags") +
+  theme_minimal()
 
 
 #versuch lukas
@@ -194,7 +194,8 @@ tagJan_df <- tagJan_df[1:10,]
 ggplot(tagJan_df, aes(x = reorder(Var1,-Freq), y = Freq)) +
   geom_bar(stat="identity", fill="darkslategray")+
   theme_minimal() + 
-  xlab("#Hashtags january") + ylab("Count")
+  ggtitle("Top 10 used hashtags in January") +
+  xlab("#Hashtags") + ylab("Count")
 
 
 #hashtags february
@@ -209,7 +210,8 @@ tagFeb_df <- tagFeb_df[1:10,]
 ggplot(tagFeb_df, aes(x = reorder(Var1,-Freq), y = Freq)) +
   geom_bar(stat="identity", fill="darkslategray")+
   theme_minimal() + 
-  xlab("#Hashtags february") + ylab("Count")
+  ggtitle("Top 10 used hashtags in February") +
+  xlab("#Hashtags") + ylab("Count")
 
 
 #hashtags march
@@ -224,7 +226,8 @@ tagMar_df <- tagMar_df[1:10,]
 ggplot(tagMar_df, aes(x = reorder(Var1,-Freq), y = Freq)) +
   geom_bar(stat="identity", fill="darkslategray")+
   theme_minimal() + 
-  xlab("#Hashtags march") + ylab("Count")
+  ggtitle("Top 10 used hashtags in March") +
+  xlab("#Hashtags") + ylab("Count")
 
 
 #hashtags april
@@ -239,7 +242,8 @@ tagApr_df <- tagApr_df[1:10,]
 ggplot(tagApr_df, aes(x = reorder(Var1,-Freq), y = Freq)) +
   geom_bar(stat="identity", fill="darkslategray")+
   theme_minimal() + 
-  xlab("#Hashtags april") + ylab("Count")
+  ggtitle("Top 10 used hashtags in April") +
+  xlab("#Hashtags") + ylab("Count")
 
 
 
@@ -257,8 +261,9 @@ mostActiveAccount_df <- mostActiveAccount_df[1:10,]
 
 ggplot(mostActiveAccount_df, aes(x = reorder(screen_name,-frq), y = frq)) +
   geom_bar(stat="identity", fill="darkslategray")+
-  theme_minimal() + 
-  xlab("Accounts") + ylab("Count")
+  theme_minimal() +
+  ggtitle("Top 10 active accounts") +
+  xlab("Accounts") + ylab("Number of tweets")
 
 
 #most acctive accounts over time
@@ -274,12 +279,12 @@ tweets %>%
            screen_name == "trojancowboy" |
            screen_name == "wernerpatels") -> mostAcctive
 
-ggplot(mostAcctive, aes(x = date, fill = screen_name)) +
+ggplot(mostAcctive, aes(x = as.Date(created_at), fill = screen_name)) +
   geom_histogram(position = "identity", stat="count", bins = 50, show.legend = F) +
   facet_wrap(~screen_name, ncol = 1) + 
   xlab("Date") + ylab("Amount of tweets") +
-  theme(axis.ticks.y = element_blank(), axis.ticks.x = element_blank(), axis.text.x = element_text(angle = 90, hjust = 1)) +
-  ggtitle("Tweet Activity")
+  theme(axis.ticks.y = element_blank(), axis.ticks.x = element_blank()) +
+  ggtitle("Tweeting activity of the 10 most active accounts")
 
 
 #amount of retweets for top 10 users
@@ -290,7 +295,7 @@ ggplot(mostAcctive, aes(x = as.Date(created_at), fill = is_retweet)) +
   ylab("Amount of tweets") +
   scale_fill_discrete(name = "Retweet", labels = c("no", "yes")) +
   theme(axis.title.x = element_blank(), axis.ticks.y = element_blank(), axis.ticks.x = element_blank()) +
-  ggtitle("Tweet Activity")
+  ggtitle("Tweeting activity of the 10 most active accounts with re-/tweets ratio")
 
 
 #most retweeted tweet
@@ -307,8 +312,10 @@ topRetweets_df <- topRetweets_df[1:10,]
 
 ggplot(topRetweets_df, aes(x = reorder(retweet_status_id,-frq), y = frq)) +
   geom_bar(stat="identity", fill="darkslategray") +
+  theme_minimal() +
   theme(axis.text.x = element_blank(), axis.ticks.x = element_blank()) + 
-  xlab("Retweets") + ylab("Count")
+  xlab("Retweets") + ylab("Count") +
+  ggtitle("Amount of the 10 most retweeted tweets")
 
 
 tweets %>%
@@ -325,9 +332,10 @@ tweets %>%
            retweet_status_id == "x1108751853972606977") -> topTenRetweets
 
 ggplot(topTenRetweets, aes(x = as.Date(created_at), fill = retweet_status_id)) +
-  geom_histogram(position = "identity", stat="count", bins = 50, show.legend = F) +
-  ylab("Amount of retweets") +
-  theme(axis.title.x = element_blank(), axis.ticks.y = element_blank(), axis.ticks.x = element_blank()) +
+  geom_histogram(position = "identity", stat="count", bins = 50, show.legend = T) +
+  xlab("") + ylab("Amount of retweets") +
+  scale_fill_discrete(name = "Account of origin", label = unique(topTenRetweets$retweet_screen_name)) +
+  theme_minimal() +
   ggtitle("Top 10 retweets")
 
 topTenRetweetsHash_dfm <- dfm(topTenRetweets$hashtags)
@@ -350,7 +358,7 @@ ggplot(topRetweetedAccounts_df, aes(x = reorder(retweet_screen_name,-frq), y = f
   geom_bar(stat="identity", fill="darkslategray") +
   theme_minimal() + 
   xlab("Retweeted Accounts") + ylab("Count") +
-  ggtitle("Top 10 retweeted Accounts")
+  ggtitle("Top 10 retweeted accounts")
 
 
 tweets %>%
@@ -368,14 +376,10 @@ tweets %>%
 
 ggplot(topTenRetweetedAccounts, aes(x = as.Date(created_at), fill = retweet_screen_name)) +
   geom_histogram(position = "identity", stat="count", bins = 50, show.legend = T) +
-  ylab("Amount of retweets") +
-  theme(axis.title.x = element_blank(), axis.ticks.y = element_blank(), axis.ticks.x = element_blank()) +
-  ggtitle("Top 10 retweets")
-
-
-facet_wrap(~screen_name, ncol = 1) +
-  ylab("Amount of tweets") +
-  scale_fill_discrete(name = "Retweet", labels = c("no", "yes")) +
+  xlab("") + ylab("Amount of retweets") +
+  scale_fill_discrete(name = "Account") +
+  theme_minimal() +
+  ggtitle("Top 10 retweeted accounts")
 
 
 ## DESCRIPTIVE STUFF ##
@@ -383,22 +387,29 @@ facet_wrap(~screen_name, ncol = 1) +
 count(tweets)
 
 #distribution of tweets over time
-counts <- table(tweets$date)
-plot(counts, col = "red")
+ggplot(tweets, aes(x = as.Date(created_at))) +
+  geom_histogram(position = "identity", stat="count", bins = 50) +
+  geom_bar(fill = "violetred2") +
+  xlab("") + ylab("Amount of tweets") +
+  theme_minimal() +
+  ggtitle("Amount of tweets over time period")
+
 
 #distribution of tweets over months
 ggplot(data = tweets, aes(x = month(created_at, label = TRUE))) +
   geom_bar(aes(fill = ..count..)) +
-  xlab("Month") + ylab("Number of tweets") + 
+  xlab("") + ylab("Number of tweets") +
   theme_minimal() +
-  scale_fill_gradient(low = "cadetblue3", high = "chartreuse4")
+  ggtitle("Amount of tweets per month") +
+  scale_fill_gradient(low = "cadetblue3", high = "chartreuse4", name = "Count")
 
 #distribution of tweets over weekdays
 ggplot(data = tweets, aes(x = wday(created_at, label = TRUE))) +
-  geom_bar(aes(fill = ..count..)) +
+  geom_bar(aes(fill = ..count.., label = "test")) +
   xlab("Day of the week") + ylab("Number of tweets") + 
+  ggtitle("Amount of tweets per day") +
   theme_minimal() +
-  scale_fill_gradient(low = "turquoise3", high = "darkgreen")
+  scale_fill_gradient(low = "turquoise3", high = "darkgreen", name = "Count")
 
 #amount of retweets
 tweets %>%
@@ -406,7 +417,8 @@ tweets %>%
 
 ggplot(data = tweets, aes(x = as.Date(created_at), fill = is_retweet)) +
   geom_histogram(bins=48) +
-  xlab("Time") + ylab("Number of tweets") + theme_minimal() +
+  xlab("Time") + ylab("Number of tweets") +
+  theme_minimal() +
   scale_fill_manual(values = c("chartreuse4", "chartreuse3"), name = "Retweet")
 
 #finding geo location
