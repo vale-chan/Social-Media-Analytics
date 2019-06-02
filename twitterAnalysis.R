@@ -9,6 +9,10 @@ library(reshape2)
 library(scales)
 library(syuzhet)
 library(urltools)
+library(tidyverse)
+library(rtweet)
+
+
 #library(purrrlyr)
 
 
@@ -401,7 +405,7 @@ tweets %>%
   group_by(urls_expanded_url) %>%
   summarise(sum=n()) %>%
   arrange(desc(sum)) %>%
-  head(20)
+  head()
 
 tweets %>%
   filter(domain != '') %>%
@@ -413,11 +417,26 @@ ggplot(tweetsYT, aes(x = as.Date(created_at), fill = urls_expanded_url)) +
   theme_minimal() +
   ggtitle("External youtube links")
 
-ggplot(tweetsYT, aes(x = urls_expanded_url)) +
-  geom_histogram(position = "identity", stat="count", bins = 50, show.legend = F) +
-  xlab("") + ylab("Amount of urls") +
-  theme_minimal() +
-  ggtitle("External youtube links")
+
+#top 10 Youtube urls
+
+tweets %>%
+  filter(domain != '') %>%
+  filter(domain == "www.youtube.com" | domain == "youtu.be") %>%
+  group_by(urls_t.co) %>%
+  summarise(sum=n()) %>%
+  arrange(desc(sum)) -> top10YTUrls
+
+top10YTUrls_df <- as.data.frame(top10YTUrls)
+top10YTUrls_df <- top10YTUrls_df[order(-top10YTUrls_df$sum),]
+top10YTUrls_df <- top10YTUrls_df[1:10,]
+
+ggplot(top10YTUrls_df, aes(x = reorder(urls_t.co,-sum), y = sum)) +
+  geom_bar(stat="identity", fill="darkslategray") +
+  theme_minimal() + 
+  xlab("External youtube urls") + ylab("Count") +
+  ggtitle("Top 10 external youtube urls")
+
 
 #top facebook links#
 tweets %>%
@@ -535,6 +554,7 @@ count(tweets)
 #4unique accounts contributing to tweets in this dataset
 unique(tweets$screen_name) %>% length()
 
+
 #distribution of tweets over time
 ggplot(tweets, aes(x = as.Date(created_at))) +
   geom_histogram(position = "identity", stat="count", bins = 50) +
@@ -545,6 +565,7 @@ ggplot(tweets, aes(x = as.Date(created_at))) +
 
 
 #distribution of tweets over months
+
 ggplot(data = tweets, aes(x = month(created_at, label = TRUE))) +
   geom_bar(aes(fill = ..count..)) +
   xlab("") + ylab("Number of tweets") +
@@ -553,12 +574,13 @@ ggplot(data = tweets, aes(x = month(created_at, label = TRUE))) +
   scale_fill_gradient(low = "cadetblue3", high = "chartreuse4", name = "Count")
 
 #distribution of tweets over weekdays
+
 ggplot(data = tweets, aes(x = wday(created_at, label = TRUE))) +
   geom_bar(aes(fill = ..count.., label = "test")) +
-  xlab("Day of the week") + ylab("Number of tweets") + 
-  ggtitle("Amount of tweets per day") +
+  xlab("") + ylab("Number of tweets") + 
+  ggtitle("Average amount of tweets per weekday") +
   theme_minimal() +
-  scale_fill_gradient(low = "turquoise3", high = "darkgreen", name = "Count")
+  scale_fill_gradient(low = "cadetblue3", high = "chartreuse4", name = "Count")
 
 #amount of retweets
 tweets %>%
@@ -566,8 +588,9 @@ tweets %>%
 
 ggplot(data = tweets, aes(x = as.Date(created_at), fill = is_retweet)) +
   geom_histogram(bins=48) +
-  xlab("Time") + ylab("Number of tweets") +
+  xlab("") + ylab("Number of tweets") +
   theme_minimal() +
+  ggtitle("Total amount of tweets per day, differentiating between tweets and retweets") +
   scale_fill_manual(values = c("chartreuse4", "chartreuse3"), name = "Retweet")
 
 #finding geo location
@@ -579,7 +602,5 @@ tweets %>%
 
 #language setting (lang: Matches tweets that have been classified by Twitter as being of a particular language)
 tweets %>%
-  count(lang) -> language  #all in english
-
-
+  count(lang)  #all in english
 
