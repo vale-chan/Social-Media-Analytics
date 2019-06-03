@@ -7,6 +7,7 @@ library(lubridate)
 library(quanteda)
 library(reshape2)
 library(scales)
+library(stringr)
 library(syuzhet)
 library(urltools)
 
@@ -613,4 +614,30 @@ tweets %>%
 #language setting (lang: Matches tweets that have been classified by Twitter as being of a particular language)
 tweets %>%
   count(lang)  #all in english
+
+
+##ASHTAG NETWORK DATA GENERATING##
+tweetsNet <- read.csv('climateChangeSample.csv',stringsAsFactors = F)
+tweetsNet %>%
+  filter(!is.na(hashtags)) %>%
+  nrow() 
+
+tweetsNet %>%
+  filter(!is.na(hashtags)) %>%
+  select(hashtags) -> hashNet
+
+hashNet <- hashNet$hashtags %>%
+  tolower() %>%
+  str_split(" ") %>%
+  lapply(function(x) {expand.grid(x, x, w = 1 / length(x), stringsAsFactors = FALSE)}) %>%
+  bind_rows
+
+hashNet %>%
+  filter(Var1 != Var2) -> hashNet  
+
+hashNet %>%
+  filter(str_detect(Var1,'<u+') == F & str_detect(Var2,'<u+') == F) -> hashNet
+colnames(hash)<-c('Source','Target', 'Weight')
+
+write.csv(hashNet,"hashNetwork.csv",row.names = FALSE)
 
