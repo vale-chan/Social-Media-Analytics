@@ -9,21 +9,21 @@ library(reshape2)
 library(scales)
 library(syuzhet)
 library(urltools)
-library(tidyverse)
-library(rtweet)
-
-
-#library(purrrlyr)
 
 
 ##SENTIMENT ANALYSIS - PREPARE DATA##
 
 #load & remove data
+
 tweets <- read.csv("climateChangeSample.csv", stringsAsFactors = F)
+
+
 #create new "date" column & eliminate december
+
 tweets$date = substr(tweets$created_at,1,10)
 
 tweets <- filter(tweets, as.Date(date) > as.Date("2018-12-31"))
+
 
 #create datasets for each month
 tweetsJan <- filter(tweets, as.Date(date) > as.Date("2018-12-31") & as.Date(date) < as.Date("2019-02-01"))
@@ -31,7 +31,9 @@ tweetsFeb <- filter(tweets, as.Date(date) > as.Date("2019-01-31") & as.Date(date
 tweetsMar <- filter(tweets, as.Date(date) > as.Date("2019-02-28") & as.Date(date) < as.Date("2019-04-01"))
 tweetsApr <- filter(tweets, as.Date(date) > as.Date("2019-03-31") & as.Date(date) < as.Date("2019-05-01"))
 
+
 #cleaning data
+
 text <- tweets$text
 tweets_dfm <- dfm(text, remove_punct = T, remove_url = T, remove_numbers = T, remove_symbols = T, remove = stopwords("en"))
 
@@ -156,18 +158,22 @@ ggplot(data = sentimentOverTime, aes(x = date, y = avgSentiment, group = 1)) +
 
 tweets$tags_split <- lapply(tweets$hashtags, function(tags) strsplit(tags, ' '))
 
+
 ##MOST USED HASHTAGS##
 # Getting the hashtags from the list 
+
 tags_split <- unlist(tweets$tags_split)
 
+
 # Formatting by removing the white spacea
+
 tags <- sapply(tags_split, function(y) nchar(trimws(y)) > 0 & !is.na(y))
 tag_df <- as.data.frame(table(tolower(tags_split[tags])))
 tag_df <- tag_df[order(-tag_df$Freq),]
-tag_df <- tag_df[1:10,]
+tag10_df <- tag_df[1:10,]
 
-ggplot(tag_df, aes(x = reorder(Var1,-Freq), y = Freq)) +
-  geom_bar(stat="identity", fill="darkslategray") +
+ggplot(tag10_df, aes(x = reorder(Var1,-Freq), y = Freq)) +
+  geom_bar(stat="identity", fill="cadetblue3") +
   xlab("#Hashtags") + ylab("") +
   ggtitle("Top 10 used hashtags") +
   theme_minimal()
@@ -188,15 +194,16 @@ daily_tags$tags_split <- sapply(daily_tags$tags, function(tags) strsplit(tags, "
 
 #hashtags january
 
+tweetsJan$tags_split <- lapply(tweetsJan$hashtags, function(tags) strsplit(tags, ' '))
 tags_split <- unlist(tweetsJan$tags_split)
-tags_splitJan <- unlist(tweetsJan$tags_split)
-tagsJan <- sapply(tags_splitJan, function(y) nchar(trimws(y)) > 0 & !is.na(y))
-tagJan_df <- as.data.frame(table(tolower(tags_splitJan[tagsJan])))
+tags_split <- unlist(tweetsJan$tags_split)
+tagsJan <- sapply(tags_split, function(y) nchar(trimws(y)) > 0 & !is.na(y))
+tagJan_df <- as.data.frame(table(tolower(tags_split[tagsJan])))
 tagJan_df <- tagJan_df[order(-tagJan_df$Freq),]
-tagJan_df <- tagJan_df[1:10,]
+tag10Jan_df <- tagJan_df[1:10,]
 
-ggplot(tagJan_df, aes(x = reorder(Var1,-Freq), y = Freq)) +
-  geom_bar(stat="identity", fill="darkslategray")+
+ggplot(tag10Jan_df, aes(x = reorder(Var1,-Freq), y = Freq)) +
+  geom_bar(stat = "identity", fill = "cadetblue3")+
   theme_minimal() + 
   ggtitle("Top 10 used hashtags in January") +
   xlab("#Hashtags") + ylab("Count")
@@ -204,15 +211,16 @@ ggplot(tagJan_df, aes(x = reorder(Var1,-Freq), y = Freq)) +
 
 #hashtags february
 
+tweetsFeb$tags_split <- lapply(tweetsFeb$hashtags, function(tags) strsplit(tags, ' '))
 tags_split <- unlist(tweetsFeb$tags_split)
-tags_splitFeb <- unlist(tweetsFeb$tags_split)
-tagsFeb <- sapply(tags_splitFeb, function(y) nchar(trimws(y)) > 0 & !is.na(y))
-tagFeb_df <- as.data.frame(table(tolower(tags_splitFeb[tagsFeb])))
+tags_split <- unlist(tweetsFeb$tags_split)
+tagsFeb <- sapply(tags_split, function(y) nchar(trimws(y)) > 0 & !is.na(y))
+tagFeb_df <- as.data.frame(table(tolower(tags_split[tagsFeb])))
 tagFeb_df <- tagFeb_df[order(-tagFeb_df$Freq),]
-tagFeb_df <- tagFeb_df[1:10,]
+tag10Feb_df <- tagFeb_df[1:10,]
 
-ggplot(tagFeb_df, aes(x = reorder(Var1,-Freq), y = Freq)) +
-  geom_bar(stat="identity", fill="darkslategray")+
+ggplot(tag10Feb_df, aes(x = reorder(Var1,-Freq), y = Freq)) +
+  geom_bar(stat = "identity", fill = "cadetblue3")+
   theme_minimal() + 
   ggtitle("Top 10 used hashtags in February") +
   xlab("#Hashtags") + ylab("Count")
@@ -220,15 +228,16 @@ ggplot(tagFeb_df, aes(x = reorder(Var1,-Freq), y = Freq)) +
 
 #hashtags march
 
+tweetsMar$tags_split <- lapply(tweetsMar$hashtags, function(tags) strsplit(tags, ' '))
 tags_split <- unlist(tweetsMar$tags_split)
-tags_splitMar <- unlist(tweetsMar$tags_split)
-tagsMar <- sapply(tags_splitMar, function(y) nchar(trimws(y)) > 0 & !is.na(y))
-tagMar_df <- as.data.frame(table(tolower(tags_splitMar[tagsMar])))
+tags_split <- unlist(tweetsMar$tags_split)
+tagsMar <- sapply(tags_split, function(y) nchar(trimws(y)) > 0 & !is.na(y))
+tagMar_df <- as.data.frame(table(tolower(tags_split[tagsMar])))
 tagMar_df <- tagMar_df[order(-tagMar_df$Freq),]
-tagMar_df <- tagMar_df[1:10,]
+tag10Mar_df <- tagMar_df[1:10,]
 
-ggplot(tagMar_df, aes(x = reorder(Var1,-Freq), y = Freq)) +
-  geom_bar(stat="identity", fill="darkslategray")+
+ggplot(tag10Mar_df, aes(x = reorder(Var1,-Freq), y = Freq)) +
+  geom_bar(stat = "identity", fill = "cadetblue3")+
   theme_minimal() + 
   ggtitle("Top 10 used hashtags in March") +
   xlab("#Hashtags") + ylab("Count")
@@ -236,15 +245,16 @@ ggplot(tagMar_df, aes(x = reorder(Var1,-Freq), y = Freq)) +
 
 #hashtags april
 
+tweetsApr$tags_split <- lapply(tweetsApr$hashtags, function(tags) strsplit(tags, ' '))
 tags_split <- unlist(tweetsApr$tags_split)
-tags_splitApr <- unlist(tweetsApr$tags_split)
-tagsApr <- sapply(tags_splitApr, function(y) nchar(trimws(y)) > 0 & !is.na(y))
-tagApr_df <- as.data.frame(table(tolower(tags_splitApr[tagsApr])))
+tags_split <- unlist(tweetsApr$tags_split)
+tagsApr <- sapply(tags_split, function(y) nchar(trimws(y)) > 0 & !is.na(y))
+tagApr_df <- as.data.frame(table(tolower(tags_split[tagsApr])))
 tagApr_df <- tagApr_df[order(-tagApr_df$Freq),]
-tagApr_df <- tagApr_df[1:10,]
+tag10Apr_df <- tagApr_df[1:10,]
 
-ggplot(tagApr_df, aes(x = reorder(Var1,-Freq), y = Freq)) +
-  geom_bar(stat="identity", fill="darkslategray")+
+ggplot(tag10Apr_df, aes(x = reorder(Var1,-Freq), y = Freq)) +
+  geom_bar(stat = "identity", fill = "cadetblue3")+
   theme_minimal() + 
   ggtitle("Top 10 used hashtags in April") +
   xlab("#Hashtags") + ylab("Count")
