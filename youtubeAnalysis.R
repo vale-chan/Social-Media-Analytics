@@ -1,5 +1,14 @@
 require(httr)
 require(jsonlite)
+library(dplyr)
+library(ggplot2)
+library(hms)
+library(lubridate)
+library(quanteda)
+library(reshape2)
+library(scales)
+library(syuzhet)
+library(urltools)
 
 #function for getting comments
 
@@ -27,4 +36,88 @@ com1 <- comments("SSrjAXK5pGw", "AIzaSyDjUAfD8u4RVt5AxiEHd7NjZT99KhanyJ4")
 com2 <- comments("TCy_UOjEir0", "AIzaSyDjUAfD8u4RVt5AxiEHd7NjZT99KhanyJ4")
 com3 <- comments("OhX2KQs3v5w", "AIzaSyDjUAfD8u4RVt5AxiEHd7NjZT99KhanyJ4")
 #Video 4 has comments blocked, so no comment-analysis for Video 4
-  
+
+
+## SENTIMENT TABLE ##
+
+##video1##
+# Converting tweets to ASCII to trackle strange characters
+com1_text <- com1$Comments
+com1_text <- iconv(com1_text, from = "UTF-8", to = "ASCII", sub = "")
+
+# removing retweets
+com1_text <- gsub("(RT|via)((?:\\b\\w*@\\w+)+)", "", com1_text)
+
+# removing mentions
+
+com1_text <- gsub("@\\w+", "", com1_text)
+sentiment1 <- get_nrc_sentiment((com1_text))
+sentimentscores1 <- data.frame(colSums(sentiment1[,]))
+names(sentimentscores1) <- "Score"
+sentimentscores1 <- cbind("sentiment" = rownames(sentimentscores1), sentimentscores1)
+rownames(sentimentscores1) <- NULL
+
+ggplot(data = sentimentscores1, aes(x = sentiment, y = Score)) +
+  geom_bar(aes(fill = sentiment), stat = "identity") +
+  scale_fill_discrete(name = "Emotion") +
+  xlab("") + ylab("Sentiment Scores") +
+  ggtitle("Sentiment score for Video 1 (Do 97% of Climate Scientists Really Agree?)") +
+  theme_minimal()
+
+
+##video2##
+# Converting tweets to ASCII to trackle strange characters
+com2_text <- com2$Comments
+com2_text <- iconv(com2_text, from = "UTF-8", to = "ASCII", sub = "")
+
+# removing retweets
+com2_text <- gsub("(RT|via)((?:\\b\\w*@\\w+)+)", "", com2_text)
+
+# removing mentions
+com2_text <- gsub("@\\w+", "", com2_text)
+sentiment2 <- get_nrc_sentiment((com2_text))
+sentimentscores2 <- data.frame(colSums(sentiment2[,]))
+names(sentimentscores2) <- "Score"
+sentimentscores2 <- cbind("sentiment" = rownames(sentimentscores2), sentimentscores2)
+rownames(sentimentscores2) <- NULL
+
+ggplot(data = sentimentscores2, aes(x = sentiment, y = Score)) +
+  geom_bar(aes(fill = sentiment), stat = "identity") +
+  scale_fill_discrete(name = "Emotion") +
+  xlab("") + ylab("Sentiment Scores") +
+  ggtitle("Sentiment score for Video 2 (Nobel Laureate Smashes the Global Warming Hoax)") +
+  theme_minimal()
+
+
+##video3##
+# Converting tweets to ASCII to trackle strange characters
+com3_text <- com3$Comments
+com3_text <- iconv(com3_text, from = "UTF-8", to = "ASCII", sub = "")
+
+# removing retweets
+com3_text <- gsub("(RT|via)((?:\\b\\w*@\\w+)+)", "", com3_text)
+
+# removing mentions
+com3_text <- gsub("@\\w+", "", com3_text)
+sentiment3 <- get_nrc_sentiment((com3_text))
+sentimentscores3 <- data.frame(colSums(sentiment3[,]))
+names(sentimentscores3) <- "Score"
+sentimentscores3 <- cbind("sentiment" = rownames(sentimentscores3), sentimentscores3)
+rownames(sentimentscores3) <- NULL
+
+ggplot(data = (sentimentscores3), aes(x = sentiment, y = Score)) +
+  geom_bar(aes(fill = sentiment), stat = "identity") +
+  scale_fill_discrete(name = "Emotion") +
+  xlab("") + ylab("Sentiment Scores") +
+  ggtitle("Sentiment score for Video 3 (Global Warming & Climate Change \"10 Year Challenge\": Is It True Or Not?)") +
+  theme_minimal()
+
+all_sentiments <- cbind(sentimentscores1, sentimentscores2[,2], sentimentscores3[,2])
+names(all_sentiments) <- c("sentiment", "score1", "score2", "score3")
+
+ggplot(data = all_sentiments, aes(x = sentiment)) +
+  geom_bar(aes(fill = sentiment), stat = "identity") +
+  scale_fill_discrete(name = "Emotion") +
+  xlab("") + ylab("Sentiment Scores") +
+  ggtitle("test") +
+  theme_minimal()
