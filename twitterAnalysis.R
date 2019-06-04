@@ -78,9 +78,10 @@ rownames(sentimentscores) <- NULL
 ggplot(data = sentimentscores, aes(x = sentiment, y = Score)) +
   geom_bar(aes(fill = sentiment), stat = "identity") +
   scale_fill_discrete(name = "Emotion") +
-  xlab("") + ylab("Sentiment Scores") +
+  xlab("") + ylab("Emotion scores") +
   ggtitle("Total emotional scores") +
-  theme_minimal()
+  theme_minimal() +
+  theme(legend.position="bottom")
 
 
 
@@ -136,6 +137,7 @@ ggplot(data = dailyEmotion, aes(day, y = meanvalue, group = sentiment, color = s
   ggtitle("Daily emotional change of tweets") +
   theme_minimal() +
   theme(legend.position="bottom", axis.text.x = element_text(angle = 90, hjust = 1))
+
 
 #positive and negative sentiments over time
 
@@ -363,7 +365,7 @@ mostActiveAccount_df <- mostActiveAccount_df[order(-mostActiveAccount_df$frq),]
 mostActiveAccount_df <- mostActiveAccount_df[1:10,]
 
 ggplot(mostActiveAccount_df, aes(x = reorder(screen_name,-frq), y = frq)) +
-  geom_bar(stat="identity", fill="darkslategray")+
+  geom_bar(stat = "identity", fill = "cadetblue3")+
   theme_minimal() +
   ggtitle("Top 10 active accounts") +
   xlab("Accounts") + ylab("Number of tweets")
@@ -380,25 +382,27 @@ tweets %>%
            screen_name == "johannaihli" |
            screen_name == "dmzastro" |
            screen_name == "trojancowboy" |
-           screen_name == "wernerpatels") -> mostAcctive
+           screen_name == "wernerpatels") -> mostActive
 
-ggplot(mostAcctive, aes(x = as.Date(created_at), fill = screen_name)) +
-  geom_histogram(position = "identity", stat="count", bins = 50, show.legend = F) +
+ggplot(mostActive, aes(x = date, fill = screen_name)) +
+  geom_histogram(position = "identity", stat = "count", bins = 50, show.legend = F) +
   facet_wrap(~screen_name, ncol = 1) + 
-  xlab("Date") + ylab("Amount of tweets") +
-  theme(axis.ticks.y = element_blank(), axis.ticks.x = element_blank()) +
-  ggtitle("Tweeting activity of the 10 most active accounts")
+  xlab("") + ylab("Amount of tweets") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1), axis.ticks = element_blank()) +
+  scale_y_continuous(breaks = c(0, 15))
 
 
 #amount of retweets for top 10 users
 
-ggplot(mostAcctive, aes(x = as.Date(created_at), fill = is_retweet)) +
+ggplot(mostActive, aes(x = date, fill = is_retweet)) +
   geom_histogram(position = "identity", stat="count", bins = 50, show.legend = T) +
   facet_wrap(~screen_name, ncol = 1) +
-  ylab("Amount of tweets") +
+  xlab("") + ylab("Amount of tweets") +
   scale_fill_discrete(name = "Retweet", labels = c("no", "yes")) +
-  theme(axis.title.x = element_blank(), axis.ticks.y = element_blank(), axis.ticks.x = element_blank()) +
-  ggtitle("Tweeting activity of the 10 most active accounts with re-/tweets ratio")
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1), axis.ticks = element_blank(), legend.position = "bottom") +
+  scale_y_continuous(breaks = c(0, 15))
 
 
 #most retweeted tweet
@@ -432,14 +436,14 @@ tweets %>%
            retweet_status_id == "x1097670309363281920" |
            retweet_status_id == "x1110671797865906178" |
            retweet_status_id == "x1109093459313524737" |
-           retweet_status_id == "x1108751853972606977") -> topTenRetweets
+           retweet_status_id == "x1099316223110594566") -> topTenRetweets
 
 ggplot(topTenRetweets, aes(x = as.Date(created_at), fill = retweet_status_id)) +
   geom_histogram(position = "identity", stat="count", bins = 50, show.legend = T) +
   xlab("") + ylab("Amount of retweets") +
   scale_fill_discrete(name = "Account of origin", label = unique(topTenRetweets$retweet_screen_name)) +
   theme_minimal() +
-  ggtitle("Top 10 retweets")
+  theme(legend.position = "bottom")
 
 topTenRetweetsHash_dfm <- dfm(topTenRetweets$hashtags)
 topfeatures(topTenRetweetsHash_dfm)
@@ -482,7 +486,7 @@ ggplot(topTenRetweetedAccounts, aes(x = as.Date(created_at), fill = retweet_scre
   xlab("") + ylab("Amount of retweets") +
   scale_fill_discrete(name = "Account") +
   theme_minimal() +
-  ggtitle("Top 10 retweeted accounts")
+  theme(legend.position = "bottom")
 
 
 
@@ -495,6 +499,14 @@ tweetsFeb$domain <- domain(tweetsFeb$urls_expanded_url)
 tweetsMar$domain <- domain(tweetsMar$urls_expanded_url)
 tweetsApr$domain <- domain(tweetsApr$urls_expanded_url)
 
+tweets %>%
+  filter(domain != '') %>%
+  group_by(urls_expanded_url) %>%
+  summarise(sum=n()) %>%
+  arrange(desc(sum)) %>%
+  head(10)
+
+
 
 #top youtube links#
 
@@ -504,7 +516,7 @@ tweets %>%
   group_by(urls_expanded_url) %>%
   summarise(sum=n()) %>%
   arrange(desc(sum)) %>%
-  head()
+  head(10)
 
 tweets %>%
   filter(domain != '') %>%
@@ -513,8 +525,7 @@ tweets %>%
 ggplot(tweetsYT, aes(x = as.Date(created_at), fill = urls_expanded_url)) +
   geom_histogram(position = "identity", stat="count", bins = 50, show.legend = F) +
   xlab("") + ylab("Amount of urls") +
-  theme_minimal() +
-  ggtitle("External youtube links")
+  theme_minimal()
 
 
 #top 10 Youtube urls
@@ -524,9 +535,9 @@ tweets %>%
   filter(domain == "www.youtube.com" | domain == "youtu.be") %>%
   group_by(urls_t.co) %>%
   summarise(sum=n()) %>%
-  arrange(desc(sum)) -> top10YTUrls
+  arrange(desc(sum)) -> topYTUrls
 
-top10YTUrls_df <- as.data.frame(top10YTUrls)
+top10YTUrls_df <- as.data.frame(topYTUrls)
 top10YTUrls_df <- top10YTUrls_df[order(-top10YTUrls_df$sum),]
 top10YTUrls_df <- top10YTUrls_df[1:10,]
 
@@ -544,7 +555,7 @@ tweets %>%
   group_by(urls_expanded_url) %>%
   summarise(sum=n()) %>%
   arrange(desc(sum)) %>%
-  head(20)
+  head(10)
 
 
 tweets %>%
@@ -743,5 +754,6 @@ edges <- tweetsEdge %>%
 
 colnames(edges) <- c('Source','Target')
 write.csv(edges,'edgeTable.csv',row.names = FALSE)
+
 
 
