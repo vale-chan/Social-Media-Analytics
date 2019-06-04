@@ -27,6 +27,7 @@ tweets <- filter(tweets, as.Date(date) > as.Date("2018-12-31"))
 
 
 #create datasets for each month
+
 tweetsJan <- filter(tweets, as.Date(date) > as.Date("2018-12-31") & as.Date(date) < as.Date("2019-02-01"))
 tweetsFeb <- filter(tweets, as.Date(date) > as.Date("2019-01-31") & as.Date(date) < as.Date("2019-03-01"))
 tweetsMar <- filter(tweets, as.Date(date) > as.Date("2019-02-28") & as.Date(date) < as.Date("2019-04-01"))
@@ -39,49 +40,57 @@ text <- tweets$text
 tweets_dfm <- dfm(text, remove_punct = T, remove_url = T, remove_numbers = T, remove_symbols = T, remove = stopwords("en"))
 
 #get ready for sentiment analysis
+
 afinn <- readRDS("afinn.rds")
 tweets_afinn <- dfm_lookup(tweets_dfm, dictionary = afinn)
 
 #prepare sentiment scoring
+
 quanteda::convert(tweets_afinn, to = "data.frame") %>%
   mutate(afinn_score = (neg5 * -5) + (neg4 * -4) + (neg3 * -3) + (neg2 * -2) + (neg1 * -1) + (zero * 0) + (pos1 * 1) + (pos2 * 2) + (pos3 * 3) + (pos4 * 4) + (pos5 * 5)) %>%
   select(afinn_score) -> afinn_score
 
 #add score as new column to original data
+
 tweets$sentimentScore <- afinn_score$afinn_score
 
 
 
 ## SENTIMENT TABLE ##
 # Converting tweets to ASCII to trackle strange characters
+
 tweets_text <- tweets$text
 tweets_text <- iconv(tweets_text, from="UTF-8", to="ASCII", sub="")
 
 # removing retweets
-tweets_text<-gsub("(RT|via)((?:\\b\\w*@\\w+)+)","",tweets_text)
+
+tweets_text <- gsub("(RT|via)((?:\\b\\w*@\\w+)+)", "", tweets_text)
 
 # removing mentions
-tweets_text <- gsub("@\\w+","",tweets_text)
+
+tweets_text <- gsub("@\\w+", "", tweets_text)
 sentiment <- get_nrc_sentiment((tweets_text))
-sentimentscores <- data.frame(colSums(sentiment[,]))
+sentimentscores <- data.frame(colSums(sentiment[,0:8]))
 names(sentimentscores) <- "Score"
-sentimentscores <- cbind("sentiment"=rownames(sentimentscores),sentimentscores)
+sentimentscores <- cbind("sentiment" = rownames(sentimentscores), sentimentscores)
 rownames(sentimentscores) <- NULL
 
-ggplot(data = sentimentscores,aes(x = sentiment, y = Score)) +
+ggplot(data = sentimentscores, aes(x = sentiment, y = Score)) +
   geom_bar(aes(fill = sentiment), stat = "identity") +
   scale_fill_discrete(name = "Emotion") +
-  xlab("Sentiments") + ylab("Sentiment Scores") +
-  ggtitle("Total sentiment based on scores") +
+  xlab("") + ylab("Sentiment Scores") +
+  ggtitle("Total emotional scores") +
   theme_minimal()
 
 
 
 ## SPECIFIC SENTIMENTS OVER TIME ##
+
 tweets$sentiments <- sentiment
 
 #emotion over time
-monthlySentiment <- tweets %>%
+
+monthlyEmotion <- tweets %>%
   group_by(month(created_at, label = TRUE)) %>%
   summarise(anger = mean(sentiments$anger),
             anticipation = mean(sentiments$anticipation),
@@ -93,16 +102,43 @@ monthlySentiment <- tweets %>%
             trust = mean(sentiments$trust)) %>%
   melt
 
-names(monthlySentiment) <- c("month", "sentiment", "meanvalue")
+names(monthlyEmotion) <- c("month", "sentiment", "meanvalue")
 
-ggplot(data = monthlySentiment, aes(month, y = meanvalue, group = sentiment, color = sentiment)) +
+ggplot(data = monthlyEmotion, aes(month, y = meanvalue, group = sentiment, color = sentiment)) +
   geom_line() + geom_point() +
   labs(colour = "Emotion") +
   xlab("") + ylab("Average emotion score") +
-  ggtitle("Emotional change of tweets") +
-  theme_minimal()
+  ggtitle("Monthly emotional change of tweets") +
+  theme_minimal() +
+  theme(legend.position="bottom")
+
+
+
+####
+dailyEmotion <- tweets %>%
+  group_by(date) %>%
+  summarise(anger = mean(sentiments$anger),
+            anticipation = mean(sentiments$anticipation),
+            disgust = mean(sentiments$disgust),
+            fear = mean(sentiments$fear),
+            joy = mean(sentiments$joy),
+            sadness = mean(sentiments$sadness),
+            surprise = mean(sentiments$surprise),
+            trust = mean(sentiments$trust)) %>%
+  melt
+
+names(dailyEmotion) <- c("day", "sentiment", "meanvalue")
+
+ggplot(data = dailyEmotion, aes(day, y = meanvalue, group = sentiment, color = sentiment)) +
+  geom_line() + geom_point() +
+  labs(colour = "Emotion") +
+  xlab("") + ylab("Average emotion score") +
+  ggtitle("Daily emotional change of tweets") +
+  theme_minimal() +
+  theme(legend.position="bottom", axis.text.x = element_text(angle = 90, hjust = 1))
 
 #positive and negative sentiments over time
+
 posNegSentiment <- tweets %>%
   group_by(month(created_at, label = TRUE)) %>%
   summarise(negative = mean(sentiments$negative),
@@ -115,14 +151,16 @@ ggplot(data = posNegSentiment, aes(month, y = meanvalue, group = sentiment, colo
   geom_line() + geom_point() +
   labs(x = "Month", colour = "Sentiment") +
   xlab("") + ylab("Average sentiment score") +
-  ggtitle("Sentiment change over time") +
-  theme_minimal()
+  ggtitle("Monthly positive and negative sentiment change of tweets") +
+  theme_minimal() +
+  theme(legend.position="bottom")
 
 #daily sentimental change
+
 posNegDaily <- tweets %>%
   group_by(date) %>%
-  summarise(positive = mean(sentiments$positive),
-            negative = mean(sentiments$negative)) %>%
+  summarise(negative = mean(sentiments$negative),
+            positive = mean(sentiments$positive)) %>%
   melt
 
 names(posNegDaily) <- c("days", "sentiment", "meanvalue")
@@ -132,22 +170,72 @@ ggplot(data = posNegDaily, aes(days, y = meanvalue, group = sentiment, color = s
   labs(x = "Sentiment", colour = "Sentiment") +
   xlab("") + ylab("Average sentiment score") +
   theme_minimal() +
-  ggtitle("Sentiment change on daily basis") +
+  theme(legend.position="bottom") +
+  ggtitle("Daily change of positive and negative sentiment of tweets") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+
+##positiv-negative sentiment aggregated##
+#monthly#
+
+sentimentMonthly <- tweets %>%
+  group_by(month(created_at, label = TRUE)) %>%
+  summarise(mean = mean(sentiments$positive) + mean(sentiments$negative)) %>%
+  melt
+
+names(sentimentMonthly) <- c("month", "sentiment", "meanvalue")
+
+ggplot(data = sentimentMonthly, aes(month, y = meanvalue, group = sentiment, color = sentiment)) +
+  geom_line() + geom_point() + geom_smooth(aes(fill = factor(sentiment), color = sentiment)) +
+  labs(x = "Sentiment", colour = "Sentiment") +
+  xlab("") + ylab("Average sentiment score") +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  ggtitle("Monthly sentiment change of tweets")
+
+#daily#
+
+sentimentDaily <- tweets %>%
+  group_by(date) %>%
+  summarise(mean = mean(sentiments$positive) + mean(sentiments$negative)) %>%
+  melt
+
+names(sentimentDaily) <- c("days", "sentiment", "meanvalue")
+
+ggplot(data = sentimentDaily, aes(days, y = meanvalue, group = sentiment, color = sentiment)) +
+  geom_line() + geom_point() + geom_smooth(aes(fill = factor(sentiment), color = sentiment)) +
+  labs(x = "Sentiment", colour = "Sentiment") +
+  xlab("") + ylab("Average sentiment score") +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  ggtitle("Daily sentiment change of tweets") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+
+ggplot(data = sentimentDaily, aes(days, y = meanvalue, group = sentiment, color = sentiment)) +
+  geom_line() + geom_point() +
+  labs(x = "Sentiment", colour = "Sentiment") +
+  xlab("") + ylab("Average sentiment score") +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  ggtitle("Daily sentiment change of tweets") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
 
 
 ## SENTIMENT ANALYSIS - SENTIMENT OVER TIME ##
 #create new "date" column
+
 tweets$date = substr(tweets$created_at,1,10)
 
 #sentiment change over time
+
 tweets %>%
   group_by(date) %>%
   summarise(avgSentiment = mean(sentimentScore)) -> sentimentOverTime
 
 ggplot(data = sentimentOverTime, aes(x = date, y = avgSentiment, group = 1)) +
-  geom_line(aes(color = 'pink'), size = 1) +
+  geom_line(aes(color = 'cadetblue3'), size = 1) +
   xlab("") + ylab("Average sentiment score") +
   theme_minimal() +
   ggtitle("Change of sentiment score on a daily basis") +
@@ -616,7 +704,7 @@ tweets %>%
   count(lang)  #all in english
 
 
-##ASHTAG NETWORK DATA GENERATING##
+##HASHTAG NETWORK DATA GENERATING##
 tweetsNet <- read.csv('climateChangeSample.csv',stringsAsFactors = F)
 tweetsNet %>%
   filter(!is.na(hashtags)) %>%
@@ -640,4 +728,20 @@ hashNet %>%
 colnames(hash)<-c('Source','Target', 'Weight')
 
 write.csv(hashNet,"hashNetwork.csv",row.names = FALSE)
+
+
+
+####################
+#retweet edge table#
+####################
+
+tweetsEdge <- read.csv('climateChangeSample.csv',stringsAsFactors = F)
+
+edges <- tweetsEdge %>%
+  filter(is_retweet == T) %>%
+  select(screen_name, retweet_screen_name)
+
+colnames(edges) <- c('Source','Target')
+write.csv(edges,'edgeTable.csv',row.names = FALSE)
+
 
