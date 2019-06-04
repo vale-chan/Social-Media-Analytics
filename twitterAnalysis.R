@@ -75,11 +75,12 @@ names(sentimentscores) <- "Score"
 sentimentscores <- cbind("sentiment" = rownames(sentimentscores), sentimentscores)
 rownames(sentimentscores) <- NULL
 
+#total emotional score
+
 ggplot(data = sentimentscores, aes(x = sentiment, y = Score)) +
   geom_bar(aes(fill = sentiment), stat = "identity") +
   scale_fill_discrete(name = "Emotion") +
   xlab("") + ylab("Emotion scores") +
-  ggtitle("Total emotional scores") +
   theme_minimal() +
   theme(legend.position="bottom")
 
@@ -424,24 +425,34 @@ ggplot(topRetweets_df, aes(x = reorder(retweet_status_id,-frq), y = frq)) +
   xlab("Retweets") + ylab("Count") +
   ggtitle("Amount of the 10 most retweeted tweets")
 
+topTenTweetIds <- c("x1112884461882925056",
+                   "x1105606202069843969",
+                   "x1111196341739417600",
+                   "x1092227514594979840",
+                   "x1108751853972606977",
+                   "x1106701643557625856",
+                   "x1097670309363281920",
+                   "x1110671797865906178",
+                   "x1109093459313524737",
+                   "x1099316223110594566")
 
-tweets %>%
-  group_by(date) %>%
-  filter(retweet_status_id == "x1112884461882925056" |
-           retweet_status_id == "x1105606202069843969" |
-           retweet_status_id == "x1111196341739417600" |
-           retweet_status_id == "x1092227514594979840" |
-           retweet_status_id == "x1108751853972606977" |
-           retweet_status_id == "x1106701643557625856" |
-           retweet_status_id == "x1097670309363281920" |
-           retweet_status_id == "x1110671797865906178" |
-           retweet_status_id == "x1109093459313524737" |
-           retweet_status_id == "x1099316223110594566") -> topTenRetweets
+topTenRetweetsMask <- sapply(
+  tweets$retweet_status_id,
+  function(id) is.element(id, topTenTweetIds)
+)
+
+tweets[topTenRetweetsMask,] %>%
+  group_by(date) -> topTenRetweets
+
+topTenTweetsMask <- sapply(
+  tweets$status_id,
+  function(id) is.element(id, topTenTweetIds)
+)
 
 ggplot(topTenRetweets, aes(x = as.Date(created_at), fill = retweet_status_id)) +
   geom_histogram(position = "identity", stat="count", bins = 50, show.legend = T) +
   xlab("") + ylab("Amount of retweets") +
-  scale_fill_discrete(name = "Account of origin", label = unique(topTenRetweets$retweet_screen_name)) +
+  scale_fill_discrete(name = "Account of origin", label = tweets[topTenTweetsMask,"screen_name"]) +
   theme_minimal() +
   theme(legend.position = "bottom")
 
