@@ -80,9 +80,9 @@ rownames(sentimentscores) <- NULL
 ggplot(data = sentimentscores, aes(x = sentiment, y = Score)) +
   geom_bar(aes(fill = sentiment), stat = "identity") +
   scale_fill_discrete(name = "Emotion") +
-  xlab("") + ylab("Emotion scores") +
+  xlab("") + ylab("Total emotion scores") +
   theme_minimal() +
-  theme(legend.position="bottom")
+  theme(legend.position = "bottom")
 
 
 
@@ -110,9 +110,9 @@ ggplot(data = monthlyEmotion, aes(month, y = meanvalue, group = sentiment, color
   geom_line() + geom_point() +
   labs(colour = "Emotion") +
   xlab("") + ylab("Average emotion score") +
-  ggtitle("Monthly emotional change of tweets") +
   theme_minimal() +
   theme(legend.position="bottom")
+#ggtitle("Monthly emotional change of tweets")
 
 
 
@@ -135,9 +135,9 @@ ggplot(data = dailyEmotion, aes(day, y = meanvalue, group = sentiment, color = s
   geom_line() + geom_point() +
   labs(colour = "Emotion") +
   xlab("") + ylab("Average emotion score") +
-  ggtitle("Daily emotional change of tweets") +
   theme_minimal() +
   theme(legend.position="bottom", axis.text.x = element_text(angle = 90, hjust = 1))
+#ggtitle("Daily emotional change of tweets")
 
 
 #positive and negative sentiments over time
@@ -154,9 +154,9 @@ ggplot(data = posNegSentiment, aes(month, y = meanvalue, group = sentiment, colo
   geom_line() + geom_point() +
   labs(x = "Month", colour = "Sentiment") +
   xlab("") + ylab("Average sentiment score") +
-  ggtitle("Monthly positive and negative sentiment change of tweets") +
   theme_minimal() +
   theme(legend.position="bottom")
+#ggtitle("Monthly positive and negative sentiment change of tweets")
 
 #daily sentimental change
 
@@ -174,8 +174,8 @@ ggplot(data = posNegDaily, aes(days, y = meanvalue, group = sentiment, color = s
   xlab("") + ylab("Average sentiment score") +
   theme_minimal() +
   theme(legend.position="bottom") +
-  ggtitle("Daily change of positive and negative sentiment of tweets") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
+#ggtitle("Daily change of positive and negative sentiment of tweets")
 
 
 ##positiv-negative sentiment aggregated##
@@ -193,8 +193,8 @@ ggplot(data = sentimentMonthly, aes(month, y = meanvalue, group = sentiment, col
   labs(x = "Sentiment", colour = "Sentiment") +
   xlab("") + ylab("Average sentiment score") +
   theme_minimal() +
-  theme(legend.position = "none") +
-  ggtitle("Monthly sentiment change of tweets")
+  theme(legend.position = "none")
+#ggtitle("Monthly sentiment change of tweets")
 
 #daily#
 
@@ -211,8 +211,8 @@ ggplot(data = sentimentDaily, aes(days, y = meanvalue, group = sentiment, color 
   xlab("") + ylab("Average sentiment score") +
   theme_minimal() +
   theme(legend.position = "none") +
-  ggtitle("Daily sentiment change of tweets") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
+#ggtitle("Daily sentiment change of tweets")
 
 
 ggplot(data = sentimentDaily, aes(days, y = meanvalue, group = sentiment, color = sentiment)) +
@@ -221,16 +221,12 @@ ggplot(data = sentimentDaily, aes(days, y = meanvalue, group = sentiment, color 
   xlab("") + ylab("Average sentiment score") +
   theme_minimal() +
   theme(legend.position = "none") +
-  ggtitle("Daily sentiment change of tweets") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
+#ggtitle("Daily sentiment change of tweets")
 
 
 
 ## SENTIMENT ANALYSIS - SENTIMENT OVER TIME ##
-#create new "date" column
-
-tweets$date = substr(tweets$created_at,1,10)
-
 #sentiment change over time
 
 tweets %>%
@@ -399,7 +395,7 @@ ggplot(mostActive, aes(x = date, fill = screen_name)) +
 ggplot(mostActive, aes(x = date, fill = is_retweet)) +
   geom_histogram(position = "identity", stat="count", bins = 50, show.legend = T) +
   facet_wrap(~screen_name, ncol = 1) +
-  xlab("") + ylab("Amount of tweets") +
+  xlab("") + ylab("Amount of tweets and retweets") +
   scale_fill_discrete(name = "Retweet", labels = c("no", "yes")) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1), axis.ticks = element_blank(), legend.position = "bottom") +
@@ -455,9 +451,6 @@ ggplot(topTenRetweets, aes(x = as.Date(created_at), fill = retweet_status_id)) +
   scale_fill_discrete(name = "Account of origin", label = tweets[topTenTweetsMask,"screen_name"]) +
   theme_minimal() +
   theme(legend.position = "bottom")
-
-topTenRetweetsHash_dfm <- dfm(topTenRetweets$hashtags)
-topfeatures(topTenRetweetsHash_dfm)
 
 
 # most retweeted account
@@ -676,32 +669,23 @@ count(tweets)
 unique(tweets$screen_name) %>% length()
 
 
-#distribution of tweets over time
-ggplot(tweets, aes(x = as.Date(created_at))) +
-  geom_histogram(position = "identity", stat="count", bins = 50) +
-  geom_bar(fill = "violetred2") +
-  xlab("") + ylab("Amount of tweets") +
-  theme_minimal() +
-  ggtitle("Amount of tweets over time period")
-
-
 #distribution of tweets over months
 
 ggplot(data = tweets, aes(x = month(created_at, label = TRUE))) +
   geom_bar(aes(fill = ..count..)) +
   xlab("") + ylab("Number of tweets") +
   theme_minimal() +
-  ggtitle("Amount of tweets per month") +
   scale_fill_gradient(low = "cadetblue3", high = "chartreuse4", name = "Count")
+#ggtitle("Amount of tweets per month")
 
 #distribution of tweets over weekdays
 
 ggplot(data = tweets, aes(x = wday(created_at, label = TRUE))) +
   geom_bar(aes(fill = ..count.., label = "test")) +
-  xlab("") + ylab("Number of tweets") + 
-  ggtitle("Average amount of tweets per weekday") +
+  xlab("") + ylab("Average number of tweets") +
   theme_minimal() +
   scale_fill_gradient(low = "cadetblue3", high = "chartreuse4", name = "Count")
+#ggtitle("Average amount of tweets per weekday")
 
 #amount of retweets
 tweets %>%
@@ -711,8 +695,8 @@ ggplot(data = tweets, aes(x = as.Date(created_at), fill = is_retweet)) +
   geom_histogram(bins=48) +
   xlab("") + ylab("Number of tweets") +
   theme_minimal() +
-  ggtitle("Total amount of tweets per day, differentiating between tweets and retweets") +
-  scale_fill_manual(values = c("chartreuse4", "chartreuse3"), name = "Retweet")
+  scale_fill_discrete(name = "Retweet", labels = c("no", "yes"))
+#ggtitle("Total amount of tweets per day, differentiating between tweets and retweets")
 
 #finding geo location
 tweets %>%
