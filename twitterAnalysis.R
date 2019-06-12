@@ -34,27 +34,6 @@ tweetsMar <- filter(tweets, as.Date(date) > as.Date("2019-02-28") & as.Date(date
 tweetsApr <- filter(tweets, as.Date(date) > as.Date("2019-03-31") & as.Date(date) < as.Date("2019-05-01"))
 
 
-#cleaning data
-
-text <- tweets$text
-tweets_dfm <- dfm(text, remove_punct = T, remove_url = T, remove_numbers = T, remove_symbols = T, remove = stopwords("en"))
-
-#get ready for sentiment analysis
-
-afinn <- readRDS("afinn.rds")
-tweets_afinn <- dfm_lookup(tweets_dfm, dictionary = afinn)
-
-#prepare sentiment scoring
-
-quanteda::convert(tweets_afinn, to = "data.frame") %>%
-  mutate(afinn_score = (neg5 * -5) + (neg4 * -4) + (neg3 * -3) + (neg2 * -2) + (neg1 * -1) + (zero * 0) + (pos1 * 1) + (pos2 * 2) + (pos3 * 3) + (pos4 * 4) + (pos5 * 5)) %>%
-  select(afinn_score) -> afinn_score
-
-#add score as new column to original data
-
-tweets$sentimentScore <- afinn_score$afinn_score
-
-
 
 ## SENTIMENT TABLE ##
 # Converting tweets to ASCII to trackle strange characters
@@ -206,16 +185,6 @@ sentimentDaily <- tweets %>%
 names(sentimentDaily) <- c("days", "sentiment", "meanvalue")
 
 ggplot(data = sentimentDaily, aes(days, y = meanvalue, group = sentiment, color = sentiment)) +
-  geom_line() + geom_point() + geom_smooth(aes(fill = factor(sentiment), color = sentiment)) +
-  labs(x = "Sentiment", colour = "Sentiment") +
-  xlab("") + ylab("Average sentiment score") +
-  theme_minimal() +
-  theme(legend.position = "none") +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))
-#ggtitle("Daily sentiment change of tweets")
-
-
-ggplot(data = sentimentDaily, aes(days, y = meanvalue, group = sentiment, color = sentiment)) +
   geom_line() + geom_point() +
   labs(x = "Sentiment", colour = "Sentiment") +
   xlab("") + ylab("Average sentiment score") +
@@ -223,23 +192,6 @@ ggplot(data = sentimentDaily, aes(days, y = meanvalue, group = sentiment, color 
   theme(legend.position = "none") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 #ggtitle("Daily sentiment change of tweets")
-
-
-
-## SENTIMENT ANALYSIS - SENTIMENT OVER TIME ##
-#sentiment change over time
-
-tweets %>%
-  group_by(date) %>%
-  summarise(avgSentiment = mean(sentimentScore)) -> sentimentOverTime
-
-ggplot(data = sentimentOverTime, aes(x = date, y = avgSentiment, group = 1)) +
-  geom_line(aes(color = 'cadetblue3'), size = 1) +
-  xlab("") + ylab("Average sentiment score") +
-  theme_minimal() +
-  ggtitle("Change of sentiment score on a daily basis") +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1), legend.position = "none")
-
 
 
 ### HASHTAG ANALYSIS ###
@@ -260,25 +212,6 @@ tag_df <- as.data.frame(table(tolower(tags_split[tags])))
 tag_df <- tag_df[order(-tag_df$Freq),]
 tag10_df <- tag_df[1:10,]
 
-ggplot(tag10_df, aes(x = reorder(Var1,-Freq), y = Freq)) +
-  geom_bar(stat="identity", fill="cadetblue3") +
-  xlab("#Hashtags") + ylab("") +
-  ggtitle("Top 10 used hashtags") +
-  theme_minimal()
-
-
-#versuch lukas
-
-daily_tags <- aggregate(
-    tweets$hashtags,
-    list(tweets$date),
-    function(tags) paste(tags, collapse = " ")
-  )
- 
-names(daily_tags) <- c("date","tags")
-
-daily_tags$tags_split <- sapply(daily_tags$tags, function(tags) strsplit(tags, " +"))
-
 
 #hashtags january
 
@@ -289,12 +222,6 @@ tagsJan <- sapply(tags_split, function(y) nchar(trimws(y)) > 0 & !is.na(y))
 tagJan_df <- as.data.frame(table(tolower(tags_split[tagsJan])))
 tagJan_df <- tagJan_df[order(-tagJan_df$Freq),]
 tag10Jan_df <- tagJan_df[1:10,]
-
-ggplot(tag10Jan_df, aes(x = reorder(Var1,-Freq), y = Freq)) +
-  geom_bar(stat = "identity", fill = "cadetblue3")+
-  theme_minimal() + 
-  ggtitle("Top 10 used hashtags in January") +
-  xlab("#Hashtags") + ylab("Count")
 
 
 #hashtags february
@@ -307,12 +234,6 @@ tagFeb_df <- as.data.frame(table(tolower(tags_split[tagsFeb])))
 tagFeb_df <- tagFeb_df[order(-tagFeb_df$Freq),]
 tag10Feb_df <- tagFeb_df[1:10,]
 
-ggplot(tag10Feb_df, aes(x = reorder(Var1,-Freq), y = Freq)) +
-  geom_bar(stat = "identity", fill = "cadetblue3")+
-  theme_minimal() + 
-  ggtitle("Top 10 used hashtags in February") +
-  xlab("#Hashtags") + ylab("Count")
-
 
 #hashtags march
 
@@ -324,12 +245,6 @@ tagMar_df <- as.data.frame(table(tolower(tags_split[tagsMar])))
 tagMar_df <- tagMar_df[order(-tagMar_df$Freq),]
 tag10Mar_df <- tagMar_df[1:10,]
 
-ggplot(tag10Mar_df, aes(x = reorder(Var1,-Freq), y = Freq)) +
-  geom_bar(stat = "identity", fill = "cadetblue3")+
-  theme_minimal() + 
-  ggtitle("Top 10 used hashtags in March") +
-  xlab("#Hashtags") + ylab("Count")
-
 
 #hashtags april
 
@@ -340,12 +255,6 @@ tagsApr <- sapply(tags_split, function(y) nchar(trimws(y)) > 0 & !is.na(y))
 tagApr_df <- as.data.frame(table(tolower(tags_split[tagsApr])))
 tagApr_df <- tagApr_df[order(-tagApr_df$Freq),]
 tag10Apr_df <- tagApr_df[1:10,]
-
-ggplot(tag10Apr_df, aes(x = reorder(Var1,-Freq), y = Freq)) +
-  geom_bar(stat = "identity", fill = "cadetblue3")+
-  theme_minimal() + 
-  ggtitle("Top 10 used hashtags in April") +
-  xlab("#Hashtags") + ylab("Count")
 
 
 
@@ -360,12 +269,6 @@ tweets %>%
 mostActiveAccount_df <- as.data.frame(mostActiveAccount)
 mostActiveAccount_df <- mostActiveAccount_df[order(-mostActiveAccount_df$frq),]
 mostActiveAccount_df <- mostActiveAccount_df[1:10,]
-
-ggplot(mostActiveAccount_df, aes(x = reorder(screen_name,-frq), y = frq)) +
-  geom_bar(stat = "identity", fill = "cadetblue3")+
-  theme_minimal() +
-  ggtitle("Top 10 active accounts") +
-  xlab("Accounts") + ylab("Number of tweets")
 
 
 #most acctive accounts over time
@@ -390,6 +293,7 @@ ggplot(mostActive, aes(x = date, fill = screen_name)) +
   scale_y_continuous(breaks = c(0, 15))
 
 
+
 #amount of retweets for top 10 users
 
 ggplot(mostActive, aes(x = date, fill = is_retweet)) +
@@ -400,6 +304,7 @@ ggplot(mostActive, aes(x = date, fill = is_retweet)) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1), axis.ticks = element_blank(), legend.position = "bottom") +
   scale_y_continuous(breaks = c(0, 15))
+
 
 
 #most retweeted tweet
@@ -413,13 +318,6 @@ tweets %>%
 topRetweets_df <- as.data.frame(topRetweets)
 topRetweets_df <- topRetweets_df[order(-topRetweets_df$frq),]
 topRetweets_df <- topRetweets_df[1:10,]
-
-ggplot(topRetweets_df, aes(x = reorder(retweet_status_id,-frq), y = frq)) +
-  geom_bar(stat="identity", fill="darkslategray") +
-  theme_minimal() +
-  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank()) + 
-  xlab("Retweets") + ylab("Count") +
-  ggtitle("Amount of the 10 most retweeted tweets")
 
 topTenTweetIds <- c("x1112884461882925056",
                    "x1105606202069843969",
@@ -465,12 +363,6 @@ topRetweetedAccounts_df <- as.data.frame(topRetweetedAccounts)
 topRetweetedAccounts_df <- topRetweetedAccounts_df[order(-topRetweetedAccounts_df$frq),]
 topRetweetedAccounts_df <- topRetweetedAccounts_df[1:10,]
 
-ggplot(topRetweetedAccounts_df, aes(x = reorder(retweet_screen_name,-frq), y = frq)) +
-  geom_bar(stat="identity", fill="darkslategray") +
-  theme_minimal() + 
-  xlab("Retweeted Accounts") + ylab("Count") +
-  ggtitle("Top 10 retweeted accounts")
-
 
 tweets %>%
   group_by(date) %>%
@@ -491,7 +383,6 @@ ggplot(topTenRetweetedAccounts, aes(x = as.Date(created_at), fill = retweet_scre
   scale_fill_discrete(name = "Account") +
   theme_minimal() +
   theme(legend.position = "bottom")
-
 
 
 ##URL-STUFF##
@@ -545,12 +436,6 @@ top10YTUrls_df <- as.data.frame(topYTUrls)
 top10YTUrls_df <- top10YTUrls_df[order(-top10YTUrls_df$sum),]
 top10YTUrls_df <- top10YTUrls_df[1:10,]
 
-ggplot(top10YTUrls_df, aes(x = reorder(urls_t.co,-sum), y = sum)) +
-  geom_bar(stat="identity", fill="darkslategray") +
-  theme_minimal() + 
-  xlab("External youtube urls") + ylab("Count") +
-  ggtitle("Top 10 external youtube urls")
-
 
 #top facebook links#
 tweets %>%
@@ -566,11 +451,6 @@ tweets %>%
   filter(domain != '') %>%
   filter(domain == "www.facebook.com") -> tweetsFB
 
-ggplot(tweetsFB, aes(x = as.Date(created_at), fill = urls_expanded_url)) +
-  geom_histogram(position = "identity", stat="count", bins = 50, show.legend = F) +
-  xlab("") + ylab("Amount of external urls") +
-  theme_minimal() +
-  ggtitle("External facebook links")
 
 #find top youtube links january#
 
@@ -678,6 +558,7 @@ ggplot(data = tweets, aes(x = month(created_at, label = TRUE))) +
   scale_fill_gradient(low = "cadetblue3", high = "chartreuse4", name = "Count")
 #ggtitle("Amount of tweets per month")
 
+
 #distribution of tweets over weekdays
 
 ggplot(data = tweets, aes(x = wday(created_at, label = TRUE))) +
@@ -686,6 +567,7 @@ ggplot(data = tweets, aes(x = wday(created_at, label = TRUE))) +
   theme_minimal() +
   scale_fill_gradient(low = "cadetblue3", high = "chartreuse4", name = "Count")
 #ggtitle("Average amount of tweets per weekday")
+
 
 #amount of retweets
 tweets %>%
@@ -698,16 +580,6 @@ ggplot(data = tweets, aes(x = as.Date(created_at), fill = is_retweet)) +
   scale_fill_discrete(name = "Retweet", labels = c("no", "yes"))
 #ggtitle("Total amount of tweets per day, differentiating between tweets and retweets")
 
-#finding geo location
-tweets %>%
-  count(location) -> locations #no use, selfdescriptive
-
-tweets %>%
-  count(geo_coords) -> geo_location #no use, only 4 activated
-
-#language setting (lang: Matches tweets that have been classified by Twitter as being of a particular language)
-tweets %>%
-  count(lang)  #all in english
 
 
 ##HASHTAG NETWORK DATA GENERATING##
