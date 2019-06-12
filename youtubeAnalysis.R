@@ -52,7 +52,7 @@ com1_text <- gsub("(RT|via)((?:\\b\\w*@\\w+)+)", "", com1_text)
 
 com1_text <- gsub("@\\w+", "", com1_text)
 sentiment1 <- get_nrc_sentiment((com1_text))
-sentimentscores1 <- data.frame(colMeans(sentiment1[,0:8]))
+sentimentscores1 <- data.frame(colMeans(sentiment1[,]))
 names(sentimentscores1) <- "Score"
 sentimentscores1 <- cbind("sentiment" = rownames(sentimentscores1), sentimentscores1)
 rownames(sentimentscores1) <- NULL
@@ -60,7 +60,7 @@ rownames(sentimentscores1) <- NULL
 ggplot(data = sentimentscores1, aes(x = sentiment, y = Score)) +
   geom_bar(aes(fill = sentiment), stat = "identity") +
   scale_fill_discrete(name = "Emotion") +
-  xlab("") + ylab("Average emotion scores") +
+  xlab("") + ylab("Average emotion and sentiment scores") +
   theme_minimal() +
   theme(legend.position="bottom")
 
@@ -76,7 +76,7 @@ com2_text <- gsub("(RT|via)((?:\\b\\w*@\\w+)+)", "", com2_text)
 # removing mentions
 com2_text <- gsub("@\\w+", "", com2_text)
 sentiment2 <- get_nrc_sentiment((com2_text))
-sentimentscores2 <- data.frame(colMeans(sentiment2[,0:8]))
+sentimentscores2 <- data.frame(colMeans(sentiment2[,]))
 names(sentimentscores2) <- "Score"
 sentimentscores2 <- cbind("sentiment" = rownames(sentimentscores2), sentimentscores2)
 rownames(sentimentscores2) <- NULL
@@ -84,7 +84,7 @@ rownames(sentimentscores2) <- NULL
 ggplot(data = sentimentscores2, aes(x = sentiment, y = Score)) +
   geom_bar(aes(fill = sentiment), stat = "identity") +
   scale_fill_discrete(name = "Emotion") +
-  xlab("") + ylab("Average emotion scores") +
+  xlab("") + ylab("Average emotion and sentiment scores") +
   theme_minimal() +
   theme(legend.position="bottom")
 
@@ -101,7 +101,7 @@ com3_text <- gsub("(RT|via)((?:\\b\\w*@\\w+)+)", "", com3_text)
 # removing mentions
 com3_text <- gsub("@\\w+", "", com3_text)
 sentiment3 <- get_nrc_sentiment((com3_text))
-sentimentscores3 <- data.frame(colMeans(sentiment3[,0:8]))
+sentimentscores3 <- data.frame(colMeans(sentiment3[,]))
 names(sentimentscores3) <- "Score"
 sentimentscores3 <- cbind("sentiment" = rownames(sentimentscores3), sentimentscores3)
 rownames(sentimentscores3) <- NULL
@@ -109,7 +109,7 @@ rownames(sentimentscores3) <- NULL
 ggplot(data = (sentimentscores3), aes(x = sentiment, y = Score)) +
   geom_bar(aes(fill = sentiment), stat = "identity") +
   scale_fill_discrete(name = "Emotion") +
-  xlab("") + ylab("Average emotion scores") +
+  xlab("") + ylab("Average emotion and sentiment scores") +
   theme_minimal() +
   theme(legend.position="bottom")
 
